@@ -5,7 +5,7 @@ function collide(cA, cB) {
     if (max(distX, distY) > cA.r + cB.r) return false;
     let distSq = distX * distX + distY * distY;
 
-    return distSq <= (cA.r * cA.r + cB.r * cB.r);
+    return distSq <= (cA.r + cB.r) * (cA.r + cB.r);
 }
 function getUnits(ecs, squadID) {
     let allUnits = ecs.filterEntities(['TYPE_UNIT']);

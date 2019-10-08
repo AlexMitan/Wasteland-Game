@@ -103,7 +103,7 @@ function DrawingSystem() {
             else 
                 stroke(0);
             
-            circle(entity.pos.x, entity.pos.y, entity.r);
+            circle(entity.pos.x, entity.pos.y, entity.r * 2);
         }
     }
 }
@@ -243,10 +243,24 @@ function NoteSystem() {
             stroke(note.stroke);
             textSize(note.size);
             let {x, y} = note.pos;
-            text(note.text, x, y);
-            // text(note.text, x, y - (10 * note.progress));
+            
+            // text(note.text, x, y);
+            text(note.text, x, y - (10 * note.progress));
             note.progress += note.rate;
             if (note.progress >= 1) note.dead = true;
+        }
+    }
+}
+
+function CombatSystem() {
+    this.process = function(ecs) {
+        let squads = ecs.filterEntities(['TYPE_SQUAD']);
+        for (let squadA of squads) {
+            for (let squadB of squads) {
+                if (squadA !== squadB && collide(squadA, squadB)) {
+                    ecs.addEntity(makeNote('bump!', squadA.pos.x, squadA.pos.y));
+                }
+            }
         }
     }
 }

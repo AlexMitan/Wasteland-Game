@@ -14,23 +14,18 @@ let gameState = {
 let sys = [
     new PlayerControlSystem(),
     new ReticleSystem(),
+    
     new DrawingSystem(),
     new RenderUnitsSystem(),
     new NoteSystem(),
+    new HpBarSystem(),
+
     new CombatSystem(),
     new CleanupSystem(),
 ];
 
-let playerSquad = {
-    TYPE_PLAYER: true,
-    TYPE_SQUAD: true,
-    r: 50,
-    fill: [100, 100, 255, 50],
-    pos: { x:100, y:100 },
-    // vel: { x: 0, y: 0},
-    speed: 5,
-};
-
+let playerSquad = makeSquad(100, 100, 40, [0, 255, 0, 100]);
+playerSquad.TYPE_PLAYER = true;
 
 ecs.addEntity(playerSquad);
 for (let i=0; i<7; i++) {
@@ -39,15 +34,7 @@ for (let i=0; i<7; i++) {
     ecs.addEntity(makeBasicUnit(playerSquad.guid));
 }
 
-let enemySquad = {
-    TYPE_SQUAD: true,
-    r: 60,
-    fill: [200, 100, 255, 50],
-    pos: { x:150, y:100 },
-    // vel: { x: 0, y: 0},
-    speed: 5,
-};
-
+let enemySquad = makeSquad(160, 100, 40, [255, 0, 0, 100]);
 ecs.addEntity(enemySquad);
 for (let i=0; i<19; i++) {
     // let unit;

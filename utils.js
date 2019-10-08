@@ -7,7 +7,7 @@ function collide(cA, cB) {
 
     return distSq <= (cA.r + cB.r) * (cA.r + cB.r);
 }
-function getUnits(ecs, squadID) {
+function getUnits(ecs, squadGuid) {
     let allUnits = ecs.filterEntities(['TYPE_UNIT']);
-    return allUnits.filter(e => e.squad === squadID);
+    return allUnits.filter(e => e.squadGuid === squadGuid);
 }

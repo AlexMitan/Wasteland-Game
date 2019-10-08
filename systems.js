@@ -63,8 +63,8 @@ function PlayerControlSystem() {
             for (let player of entities) {
                 let angle = atan2(mouseY - player.pos.y, mouseX - player.pos.x);
                 if (mouseIsPressed) {
-                    player.pos.x += player.speed * cos(angle);
-                    player.pos.y += player.speed * sin(angle);
+                    player.pos.x += player.squad.speed * cos(angle);
+                    player.pos.y += player.squad.speed * sin(angle);
             }
         }
     }
@@ -200,7 +200,7 @@ function RenderUnitsSystem() {
     }
     this.process = function(ecs) {
         // init
-        let squads = ecs.filterEntities(['TYPE_SQUAD']);
+        let squads = ecs.filterEntities(['squad']);
         
         // for each squad
         for (let squad of squads) {
@@ -215,11 +215,11 @@ function RenderUnitsSystem() {
                 let ringBounds = this.ringDict.ringBounds[ring];
                 let angle = map(i, ringBounds[0], ringBounds[1] + 1, 0, TAU);
                 let unit = myUnits[i];
-                let offset = ring * 20;
+                let offset = ring * 30;
                 fill(unit.fill);
                 let unitX = squad.pos.x + cos(angle) * offset,
                     unitY = squad.pos.y + sin(angle) * offset;
-                circle(unitX, unitY, unit.r);
+                unit.pos = {x: unitX, y: unitY};
                 fill(255);
                 text(unit.letter, unitX - unit.letter.length * 2, unitY - 5);
             }
@@ -252,9 +252,21 @@ function NoteSystem() {
     }
 }
 
+function HpBarSystem() {
+    this.process = function(ecs) {
+        let entities = ecs.filterEntities(['hp']);
+        for (let entity of entities) { 
+            let hp = entity.hp;
+            fill(0, 200, 0);
+            stroke(0, 0);
+            rect(entity.pos.x - 6, entity.pos.y + 6, map(hp.curr, 0, hp.base, 0, 10), 4);
+        }
+    }
+}
+
 function CombatSystem() {
     this.process = function(ecs) {
-        let squads = ecs.filterEntities(['TYPE_SQUAD']);
+        let squads = ecs.filterEntities(['squad']);
         for (let squadA of squads) {
             for (let squadB of squads) {
                 if (squadA !== squadB && collide(squadA, squadB)) {

@@ -29,12 +29,12 @@ playerSquad.TYPE_PLAYER = true;
 
 ecs.addEntity(playerSquad);
 for (let i=0; i<7; i++) {
-    // let unit = makeUnit(10, 3, 3, playerSquad.guid, 10, [255], 'i');
-    // ecs.addEntity(unit);
-    ecs.addEntity(makeBasicUnit(playerSquad.guid));
+    let unit = makeUnit(10, 3, 3, playerSquad.guid, 10, [255], 'i');
+    ecs.addEntity(unit);
+    // ecs.addEntity(makeBasicUnit(playerSquad.guid));
 }
 
-let enemySquad = makeSquad(160, 100, 40, [255, 0, 0, 100]);
+let enemySquad = makeSquad(160, 100, 80, [255, 0, 0, 100]);
 ecs.addEntity(enemySquad);
 for (let i=0; i<19; i++) {
     // let unit;

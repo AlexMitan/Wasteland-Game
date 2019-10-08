@@ -221,6 +221,7 @@ function RenderUnitsSystem() {
                     unitY = squad.pos.y + sin(angle) * offset;
                 unit.pos = {x: unitX, y: unitY};
                 fill(255);
+                textSize(10);
                 text(unit.letter, unitX - unit.letter.length * 2, unitY - 5);
             }
         }
@@ -270,7 +271,18 @@ function CombatSystem() {
         for (let squadA of squads) {
             for (let squadB of squads) {
                 if (squadA !== squadB && collide(squadA, squadB)) {
-                    ecs.addEntity(makeNote('bump!', squadA.pos.x, squadA.pos.y));
+                    // ecs.addEntity(makeNote('bump!', squadA.pos.x, squadA.pos.y));
+                    let unitsA = getUnits(ecs, squadA.guid);
+                    let unitsB = getUnits(ecs, squadB.guid);
+
+                    var attacker = unitsA[Math.floor(Math.random()*unitsA.length)];
+                    var defender = unitsB[Math.floor(Math.random()*unitsB.length)];
+
+                    if (Math.random() < 0.1) {
+                        ecs.addEntity(makeNote('pow!', attacker.pos.x, attacker.pos.y, 0.05, 10));
+                        defender.hp.curr -= attacker.attack;
+                        if (defender.hp.curr <= 0) defender.dead = true;
+                    }
                 }
             }
         }

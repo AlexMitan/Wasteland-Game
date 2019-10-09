@@ -26,9 +26,10 @@ function makeParticle(x, y, angle, speed, r, lifetime, fill, stroke) {
 
 function makeSquad(x, y, r, fill, stroke) {
     return {
-        squad: {
-            speed: 5
+        containsUnits: {
         },
+        speed: 5,
+        vel: {x: 0, y: 0},
         pos: {x, y},
         r: r || 40,
         fill: fill || [255, 128],
@@ -36,7 +37,7 @@ function makeSquad(x, y, r, fill, stroke) {
     }
 } 
 
-function makeUnit(hp, attack, speed, squadGuid, size, fill, letter) {
+function makeUnit(hp, attack, speed, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,
         hp: {
@@ -44,12 +45,16 @@ function makeUnit(hp, attack, speed, squadGuid, size, fill, letter) {
             curr: hp,
         },
         pos: {x: 0, y: 0},
-        attack,
-        speed,
-        size: size || 20,
-        fill: fill || [255],
+        stats: {
+            attack,
+            speed,
+        },
+        textRender: {
+            size: size || 20,
+            fill: fill || [255],
+            string: string || '?',
+        },
         squadGuid: squadGuid,
-        letter: letter || ' ',
     }
 }
 

@@ -16,9 +16,10 @@ let sys = [
     new ReticleSystem(),
     
     new DrawingSystem(),
-    new RenderUnitsSystem(),
+    new PositionUnitsSystem(),
     new NoteSystem(),
     new HpBarSystem(),
+    new VelocitySystem(),
 
     new CombatSystem(),
     new CleanupSystem(),

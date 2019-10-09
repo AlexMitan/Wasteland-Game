@@ -43,7 +43,6 @@ function EnemyFollowsPlayerSystem() {
 function VelocitySystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['pos', 'vel']);
-        console.log(entities.length);
         
         for (let entity of entities) {
             entity.pos.x += entity.vel.x;
@@ -63,8 +62,8 @@ function PlayerControlSystem() {
             for (let player of entities) {
                 let angle = atan2(mouseY - player.pos.y, mouseX - player.pos.x);
                 if (mouseIsPressed) {
-                    player.pos.x += player.squad.speed * cos(angle);
-                    player.pos.y += player.squad.speed * sin(angle);
+                    player.pos.x += player.speed * cos(angle);
+                    player.pos.y += player.speed * sin(angle);
             }
         }
     }
@@ -93,10 +92,21 @@ function CleanupSystem() {
 }
 
 function DrawingSystem() {
+    function customText(_str, x, y, size, _fill, _stroke) {
+        function monoOffset(n) {
+            return 13 / 40 * n;
+        }
+        textFont('Courier New');
+        stroke(_stroke || [0, 0]);
+        fill(_fill);
+        textSize(size);
+        text(_str, x - monoOffset(size), y);
+    }
+                    
     this.process = function(ecs) {
-        let entities = ecs.filterEntities(['pos', 'r', 'fill']);
+        let circleRenderEntities = ecs.filterEntities(['pos', 'r', 'fill']);
         
-        for (let entity of entities) {
+        for (let entity of circleRenderEntities) {
             fill(...entity.fill);
             if (entity.stroke)
                 stroke(...entity.stroke)
@@ -104,6 +114,19 @@ function DrawingSystem() {
                 stroke(0);
             
             circle(entity.pos.x, entity.pos.y, entity.r * 2);
+        }
+
+        let textRenderEntities = ecs.filterEntities(['pos', 'textRender']);
+        for (let entity of textRenderEntities) {
+            // textRender: {
+            //     x: null, y: null,
+            //     size: size || 20,
+            //     fill: fill || [255],
+            //     string: string || '?',
+            // },
+            let {size, fill, string} = entity.textRender;
+            let {x, y} = entity.pos;
+            customText(string, x, y, size, fill, null);
         }
     }
 }
@@ -160,7 +183,7 @@ function ExplosionSystem() {
     }
 }
 
-function RenderUnitsSystem() {
+function PositionUnitsSystem() {
     function ringCapacity(ring) {
         if (ring === 0) return 1;
         else return ring * 6;
@@ -199,20 +222,10 @@ function RenderUnitsSystem() {
         dict.maxCalculation = n;
     }
 
-    function customText(_str, x, y, size, _fill, _stroke) {
-        function monoOffset(n) {
-            return 13 / 40 * n;
-        }
-        textFont('Courier New');
-        stroke(_stroke || [0, 0]);
-        fill(_fill);
-        textSize(size);
-        text(_str, x - monoOffset(size), y);
-    }
 
     this.process = function(ecs) {
         // init
-        let squads = ecs.filterEntities(['squad']);
+        let squads = ecs.filterEntities(['containsUnits']);
         // {
         //     squad: {
         //         speed: 5
@@ -238,9 +251,9 @@ function RenderUnitsSystem() {
                 let offset = ring * 30;
                 let unitX = squad.pos.x + cos(angle) * offset,
                     unitY = squad.pos.y + sin(angle) * offset;
-                unit.pos = {x: unitX, y: unitY};
-                    
-                customText(unit.letter, unitX, unitY, unit.size, unit.fill, unit.stroke);
+
+                unit.pos.x = unitX;
+                unit.pos.y = unitY;
             }
         }
     }
@@ -285,16 +298,8 @@ function HpBarSystem() {
 
 function CombatSystem() {
     this.process = function(ecs) {
-        let squads = ecs.filterEntities(['squad']);
-        // {
-        //     squad: {
-        //         speed: 5
-        //     },
-        //     pos: {x, y},
-        //     r: r || 40,
-        //     fill: fill || [255, 128],
-        //     stroke: stroke || [255, 0],
-        // }
+        let squads = ecs.filterEntities(['containsUnits']);
+        
         for (let squadA of squads) {
             for (let squadB of squads) {
                 if (squadA !== squadB && collide(squadA, squadB)) {
@@ -307,7 +312,7 @@ function CombatSystem() {
 
                     if (Math.random() < 0.1) {
                         ecs.addEntity(makeNote('pow!', attacker.pos.x, attacker.pos.y, 0.05, 10));
-                        defender.hp.curr -= attacker.attack;
+                        defender.hp.curr -= attacker.stats.attack;
                         if (defender.hp.curr <= 0) defender.dead = true;
                     }
                 }

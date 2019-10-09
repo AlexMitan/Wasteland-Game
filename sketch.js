@@ -29,7 +29,7 @@ playerSquad.TYPE_PLAYER = true;
 
 ecs.addEntity(playerSquad);
 for (let i=0; i<7; i++) {
-    let unit = makeUnit(10, 3, 3, playerSquad.guid, 10, [255], 'i');
+    let unit = makeUnit(20, 3, 3, playerSquad.guid, 30, [200, 200, 255], 'B');
     ecs.addEntity(unit);
     // ecs.addEntity(makeBasicUnit(playerSquad.guid));
 }

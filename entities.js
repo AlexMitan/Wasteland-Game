@@ -36,7 +36,7 @@ function makeSquad(x, y, r, fill, stroke) {
     }
 } 
 
-function makeUnit(hp, attack, speed, squadGuid, r, fill, letter) {
+function makeUnit(hp, attack, speed, squadGuid, size, fill, letter) {
     return {
         TYPE_UNIT: true,
         hp: {
@@ -46,7 +46,7 @@ function makeUnit(hp, attack, speed, squadGuid, r, fill, letter) {
         pos: {x: 0, y: 0},
         attack,
         speed,
-        r: r || 3,
+        size: size || 20,
         fill: fill || [255],
         squadGuid: squadGuid,
         letter: letter || ' ',
@@ -54,5 +54,5 @@ function makeUnit(hp, attack, speed, squadGuid, r, fill, letter) {
 }
 
 function makeBasicUnit(squadGuid) {
-    return makeUnit(10, 1, 5, squadGuid, 5, [255], 'b');
+    return makeUnit(10, 1, 5, squadGuid, null, null, 'b');
 }

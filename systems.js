@@ -198,10 +198,30 @@ function RenderUnitsSystem() {
         }
         dict.maxCalculation = n;
     }
+
+    function customText(_str, x, y, size, _fill, _stroke) {
+        function monoOffset(n) {
+            return 13 / 40 * n;
+        }
+        textFont('Courier New');
+        stroke(_stroke || [0, 0]);
+        fill(_fill);
+        textSize(size);
+        text(_str, x - monoOffset(size), y);
+    }
+
     this.process = function(ecs) {
         // init
         let squads = ecs.filterEntities(['squad']);
-        
+        // {
+        //     squad: {
+        //         speed: 5
+        //     },
+        //     pos: {x, y},
+        //     r: r || 40,
+        //     fill: fill || [255, 128],
+        //     stroke: stroke || [255, 0],
+        // }
         // for each squad
         for (let squad of squads) {
             let myUnits = getUnits(ecs, squad.guid);
@@ -216,13 +236,11 @@ function RenderUnitsSystem() {
                 let angle = map(i, ringBounds[0], ringBounds[1] + 1, 0, TAU);
                 let unit = myUnits[i];
                 let offset = ring * 30;
-                fill(unit.fill);
                 let unitX = squad.pos.x + cos(angle) * offset,
                     unitY = squad.pos.y + sin(angle) * offset;
                 unit.pos = {x: unitX, y: unitY};
-                fill(255);
-                textSize(10);
-                text(unit.letter, unitX - unit.letter.length * 2, unitY - 5);
+                    
+                customText(unit.letter, unitX, unitY, unit.size, unit.fill, unit.stroke);
             }
         }
     }
@@ -268,14 +286,23 @@ function HpBarSystem() {
 function CombatSystem() {
     this.process = function(ecs) {
         let squads = ecs.filterEntities(['squad']);
+        // {
+        //     squad: {
+        //         speed: 5
+        //     },
+        //     pos: {x, y},
+        //     r: r || 40,
+        //     fill: fill || [255, 128],
+        //     stroke: stroke || [255, 0],
+        // }
         for (let squadA of squads) {
             for (let squadB of squads) {
                 if (squadA !== squadB && collide(squadA, squadB)) {
                     // ecs.addEntity(makeNote('bump!', squadA.pos.x, squadA.pos.y));
                     let unitsA = getUnits(ecs, squadA.guid);
-                    let unitsB = getUnits(ecs, squadB.guid);
-
                     var attacker = unitsA[Math.floor(Math.random()*unitsA.length)];
+                    
+                    let unitsB = getUnits(ecs, squadB.guid);
                     var defender = unitsB[Math.floor(Math.random()*unitsB.length)];
 
                     if (Math.random() < 0.1) {

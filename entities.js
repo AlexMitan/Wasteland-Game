@@ -37,17 +37,20 @@ function makeSquad(x, y, r, fill, stroke) {
     }
 } 
 
-function makeUnit(hp, attack, speed, squadGuid, size, fill, string) {
+function makeUnit(hp, attack, cooldown, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,
-        hp: {
-            base: hp,
-            curr: hp,
-        },
         pos: {x: 0, y: 0},
         stats: {
+            hp: {
+                base: hp,
+                curr: hp,
+            },
+            cooldown: {
+                base: cooldown,
+                curr: 0,
+            },
             attack,
-            speed,
         },
         textRender: {
             size: size || 20,

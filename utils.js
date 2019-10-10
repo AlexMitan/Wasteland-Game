@@ -11,3 +11,6 @@ function getUnits(ecs, squadGuid) {
     let allUnits = ecs.filterEntities(['TYPE_UNIT']);
     return allUnits.filter(e => e.squadGuid === squadGuid);
 }
+function pickFrom(arr) {
+    return arr[Math.floor(Math.random()*arr.length)]
+}

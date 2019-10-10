@@ -322,7 +322,7 @@ function HpBarSystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['hp']);
         for (let entity of entities) { 
-            let hp = entity.hp;
+            let hp = entity.stats.hp;
             noStroke();
             fill(200, 0, 0);
             rect(entity.pos.x - 6, entity.pos.y + 6, 10, 4);
@@ -334,31 +334,38 @@ function HpBarSystem() {
 
 function CombatSystem() {
     this.process = function(ecs) {
-        let squads = ecs.filterEntities(['containsUnits']);
+        let entities = ecs.filterEntities(['containsUnits']);
         
-        for (let squadA of squads) {
-            for (let squadB of squads) {
+        for (let squadA of entities) {
+            for (let squadB of entities) {
                 if (squadA !== squadB && collide(squadA, squadB)) {
                     // ecs.addEntity(makeNote('bump!', squadA.pos.x, squadA.pos.y));
-                    let unitsA = getUnits(ecs, squadA.guid);
-                    var attacker = unitsA[Math.floor(Math.random()*unitsA.length)];
-                    
+                    let attackers = getUnits(ecs, squadA.guid);
                     let unitsB = getUnits(ecs, squadB.guid);
-                    var defender = unitsB[Math.floor(Math.random()*unitsB.length)];
 
-                    if (attacker && defender && Math.random() < 0.1) {
-                        ecs.addEntity(makeAsciiProjectile('+',
-                            attacker.pos.x, attacker.pos.y,
-                            defender.pos.x, defender.pos.y,
-                            0.1, attacker.stats.attack * 10,
-                            [255, 255, 0]
-                        ))
-                        defender.hp.curr -= attacker.stats.attack;
-                        if (defender.hp.curr <= 0) {
-                            defender.dead = true;
-                            ecs.updateEntity(defender);
+                    // if no cooldown
+                    for (let attacker of attackers) {
+                        if(attacker.stats.cooldown.curr === 0) {
+
+                            var defender = pickFrom(unitsB);
+                            ecs.addEntity(makeAsciiProjectile('+',
+                                attacker.pos.x, attacker.pos.y,
+                                defender.pos.x, defender.pos.y,
+                                0.1, attacker.stats.attack * 10,
+                                [255, 255, 0]
+                            ))
+                            // attack
+                            defender.stats.hp.curr -= attacker.stats.attack;
+                            if (defender.stats.hp.curr <= 0) {
+                                defender.dead = true;
+                                ecs.updateEntity(defender);
+                            }
+                            // go on cooldown
+                            attacker.stats.cooldown.curr = attacker.stats.cooldown.base;
+                        } else {
+                            attacker.stats.cooldown.curr -= max(attacker.stats.cooldown.curr - 1, 0);
                         }
-                    } 
+                    }
                 }
             }
         }

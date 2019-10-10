@@ -1,21 +1,32 @@
-function BlankSystem(debug=false) {
-    this.filter = [];
-    this.debug = debug;
-    this.process = function(ecs) {
-        let guids = ecs.filterGuids(this.filter);
-        this.debug && console.log(`running blank on ${ecs.names(guids)}`);
-        for (let guid of guids) {
-            let entity = ecs.hash[guid];
-            this.debug && console.log(``);
-        }
-    }
-}
+// function BlankSystem(debug=false) {
+//     this.filter = [];
+//     this.debug = debug;
+//     this.process = function(ecs) {
+//         let guids = ecs.filterGuids(this.filter);
+//         this.debug && console.log(`running blank on ${ecs.names(guids)}`);
+//         for (let guid of guids) {
+//             let entity = ecs.hash[guid];
+//             this.debug && console.log(``);
+//         }
+//     }
+// }
 
 function HpToRadiusSystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['hp']);
         for (let entity of entities) {
             entity.r = sqrt(entity.hp.curr / PI) * 10 + 10;
+        }
+    }
+}
+function TickSystem() {
+    this.process = function(ecs) {
+        let entities = ecs.filterEntities(['gameState']);
+        for (let entity of entities) {
+            entity.gameState.tick += 1;
+            fill(255);
+            noStroke();
+            text(entity.gameState.tick, 20, 20);
         }
     }
 }
@@ -57,13 +68,13 @@ function VelocitySystem() {
 
 function PlayerControlSystem() {
     // // player controls
-        this.process = function(ecs) {
-            let entities = ecs.filterEntities(['TYPE_PLAYER']);
-            for (let player of entities) {
-                let angle = atan2(mouseY - player.pos.y, mouseX - player.pos.x);
-                if (mouseIsPressed) {
-                    player.pos.x += player.speed * cos(angle);
-                    player.pos.y += player.speed * sin(angle);
+    this.process = function(ecs) {
+        let entities = ecs.filterEntities(['TYPE_PLAYER']);
+        for (let player of entities) {
+            let angle = atan2(mouseY - player.pos.y, mouseX - player.pos.x);
+            if (mouseIsPressed) {
+                player.pos.x += player.speed * cos(angle);
+                player.pos.y += player.speed * sin(angle);
             }
         }
     }
@@ -75,7 +86,11 @@ function LifetimeSystem() {
         // bullet lifetime
         for (let entity of entities) {
             entity.lifetime -= 1;
-            if (entity.lifetime <= 0) entity.dead = true;
+            if (entity.lifetime <= 0){
+                entity.dead = true;
+                ecs.updateEntity(entity);
+            } 
+                
         }
     }
 }
@@ -86,6 +101,8 @@ function CleanupSystem() {
         for (let entity of entities) {
             if (entity.dead === true){
                 ecs.removeEntity(entity);
+                let tick = ecs.filterEntities(['gameState'])[0].gameState.tick;
+                // console.log('entity', entity.guid, 'removed on tick', tick);
             }
         }
     }
@@ -163,21 +180,23 @@ function OddSystem() {
 
 function ExplosionSystem() {
     this.process = function(ecs) {
-        let explosions = ecs.filterEntities(['TYPE_EXPLOSION']);
+        let entities = ecs.filterEntities(['TYPE_EXPLOSION']);
         // { pos: {x,y}, r, n, fill, speed, lifetime }
-        for(let explosion of explosions) {
-            explosion.dead = true;
-            for(let i=0; i<explosion.n; i++) {
+        for(let entity of entities) {
+            entity.dead = true;
+            ecs.updateEntity(entity);
+            
+            for(let i=0; i<entity.n; i++) {
                 ecs.addEntity(
                     makeParticle(
-                        explosion.pos.x,
-                        explosion.pos.y, 
+                        entity.pos.x,
+                        entity.pos.y, 
                         random(0, TAU), 
-                        explosion.speed * random(0.8, 1.2),
-                        explosion.r,
-                        explosion.lifetime,
-                        explosion.fill,
-                        explosion.stroke))
+                        entity.speed * random(0.8, 1.2),
+                        entity.r,
+                        entity.lifetime,
+                        entity.fill,
+                        entity.stroke))
             }
         }
     }
@@ -240,7 +259,6 @@ function PositionUnitsSystem() {
             let myUnits = getUnits(ecs, squad.guid);
             if (myUnits.length > this.ringDict.maxCalculation) {
                 this.init(myUnits.length + 100);
-                console.log('init!');
             } 
             // render its units
             for (let i=0; i<myUnits.length; i++) {
@@ -293,6 +311,7 @@ function AsciiAnimSystem() {
             if (anim.progress >= 1) {
                 anim.progress = 1;
                 entity.dead = true;
+                ecs.updateEntity(entity);
             }    
         }
     }
@@ -326,14 +345,17 @@ function CombatSystem() {
                     let unitsB = getUnits(ecs, squadB.guid);
                     var defender = unitsB[Math.floor(Math.random()*unitsB.length)];
 
-                    if (Math.random() < 0.1) {
+                    if (attacker && defender && Math.random() < 0.1) {
                         ecs.addEntity(makeAsciiAnim('*', 
                             attacker.pos.x, attacker.pos.y,
                             defender.pos.x, defender.pos.y,
                             0.05, 20, 20, [255,255,0], [255,255,0]));
                         defender.hp.curr -= attacker.stats.attack;
-                        if (defender.hp.curr <= 0) defender.dead = true;
-                    }
+                        if (defender.hp.curr <= 0) {
+                            defender.dead = true;
+                            ecs.updateEntity(defender);
+                        }
+                    } 
                 }
             }
         }

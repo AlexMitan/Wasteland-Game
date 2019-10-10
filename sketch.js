@@ -6,22 +6,24 @@ function setup() {
     createCanvas(1000, 600);
     background(200, 150, 200);
 }
-let gameState = {
-    enemySpawnCd: 0,
-}
-
-
+ecs.addEntity({
+    gameState: {
+        tick: 0,
+    }
+});
+    
 let sys = [
     new PlayerControlSystem(),
     new ReticleSystem(),
+    new TickSystem(),
     
     new DrawingSystem(),
     new PositionUnitsSystem(),
     new AsciiAnimSystem(),
     new HpBarSystem(),
     new VelocitySystem(),
-
     new CombatSystem(),
+
     new CleanupSystem(),
 ];
 
@@ -29,7 +31,7 @@ let playerSquad = makeSquad(100, 100, 40, [0, 255, 0, 100]);
 playerSquad.TYPE_PLAYER = true;
 
 ecs.addEntity(playerSquad);
-for (let i=0; i<7; i++) {
+for (let i=0; i<5; i++) {
     let unit = makeUnit(20, 3, 3, playerSquad.guid, 30, [200, 200, 255], 'B');
     ecs.addEntity(unit);
     // ecs.addEntity(makeBasicUnit(playerSquad.guid));
@@ -55,7 +57,7 @@ ecs.addEntity({
 });
 
 
-ecs.addEntity(makeAsciiAnim('test', 100, 100, 120, 150, 0.05, 20, 40, [255, 255], [255, 0]));
+// ecs.addEntity(makeAsciiAnim('test', 100, 100, 120, 150, 0.05, 20, 40, [255, 255], [255, 0]));
 
 function draw() {
     background(0);

@@ -17,7 +17,7 @@ let sys = [
     
     new DrawingSystem(),
     new PositionUnitsSystem(),
-    new NoteSystem(),
+    new AsciiAnimSystem(),
     new HpBarSystem(),
     new VelocitySystem(),
 
@@ -54,20 +54,8 @@ ecs.addEntity({
     pos: { x:100, y:100 },
 });
 
-function makeNote(text, x, y, rate, size, fill, stroke) {
-    return {
-        TYPE_NOTE: true,
-        pos: {x, y},
-        text: text || 'DEFAULT NOTE',
-        progress: 0,
-        rate: rate || 0.1,
-        size: size || 10,
-        fill: fill || [255],
-        stroke: stroke || [255],
-    }
-}
 
-ecs.addEntity(makeNote('test', 100, 100));
+ecs.addEntity(makeAsciiAnim('test', 100, 100, 120, 150, 0.05, 20, 40, [255, 255], [255, 0]));
 
 function draw() {
     background(0);

@@ -61,3 +61,30 @@ function makeUnit(hp, attack, speed, squadGuid, size, fill, string) {
 function makeBasicUnit(squadGuid) {
     return makeUnit(10, 1, 5, squadGuid, null, null, 'b');
 }
+
+function makeAsciiAnim(text, xa, ya, xb, yb, rate, sizeA, sizeB, fillA, fillB) {
+    return {
+        // initial state
+        asciiAnim: {
+            text,
+            initialState: {
+                pos: {x:xa, y:ya},
+                size: sizeA, 
+                fill: fillA,
+            },
+            // final state
+            finalState: {
+                pos: {x:xb, y:yb},
+                size: sizeB, 
+                fill: fillB,
+            },
+            // progress
+            progress: 0,
+            rate,
+        }
+    }
+}
+
+function makeAsciiProjectile(text, xa, ya, xb, yb, rate, size, fill) {
+    return makeAsciiAnim(text, xa, ya, xb, yb, rate, size, size, fill, fill);
+}

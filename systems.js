@@ -259,27 +259,41 @@ function PositionUnitsSystem() {
     }
 }
 
-function NoteSystem() {
-    // TYPE_NOTE: true,
-    // pos: {x, y},
-    // text: text || 'DEFAULT NOTE',
-    // progress: 0,
-    // rate: rate || 0.1,
-    // size: size || 10,
-    // fill: fill || [255],
-    // stroke: stroke || [255],
+function AsciiAnimSystem() {
+    // this.example = {
+    //     asciiAnim: {
+    //         text,
+    //         initialState: {
+    //             pos: {x, y},
+    //             size, fill,
+    //         },
+    //         finalState: {
+    //             pos: {x, y},
+    //             size, fill,
+    //         },
+    //         progress: 0,
+    //         rate: 0.1,
+    //     }
+    // }
     this.process = function(ecs) {
-        let notes = ecs.filterEntities(['TYPE_NOTE']);
-        for (let note of notes) {
-            fill(note.fill);
-            stroke(note.stroke);
-            textSize(note.size);
-            let {x, y} = note.pos;
+        let entities = ecs.filterEntities(['asciiAnim']);
+        for (let entity of entities) {
+            let anim = entity.asciiAnim;
+            let { initialState, finalState } = anim;
+            let x = map(anim.progress, 0, 1, initialState.pos.x, finalState.pos.x);
+            let y = map(anim.progress, 0, 1, initialState.pos.y, finalState.pos.y);
+            let size = map(anim.progress, 0, 1, initialState.size, finalState.size);
+            fill(initialState.fill);
             
-            // text(note.text, x, y);
-            text(note.text, x, y - (10 * note.progress));
-            note.progress += note.rate;
-            if (note.progress >= 1) note.dead = true;
+            noStroke();
+            textSize(size);
+            text(anim.text, x, y);
+
+            anim.progress += anim.rate;
+            if (anim.progress >= 1) {
+                anim.progress = 1;
+                entity.dead = true;
+            }    
         }
     }
 }
@@ -289,8 +303,10 @@ function HpBarSystem() {
         let entities = ecs.filterEntities(['hp']);
         for (let entity of entities) { 
             let hp = entity.hp;
+            noStroke();
+            fill(200, 0, 0);
+            rect(entity.pos.x - 6, entity.pos.y + 6, 10, 4);
             fill(0, 200, 0);
-            stroke(0, 0);
             rect(entity.pos.x - 6, entity.pos.y + 6, map(hp.curr, 0, hp.base, 0, 10), 4);
         }
     }
@@ -311,7 +327,10 @@ function CombatSystem() {
                     var defender = unitsB[Math.floor(Math.random()*unitsB.length)];
 
                     if (Math.random() < 0.1) {
-                        ecs.addEntity(makeNote('pow!', attacker.pos.x, attacker.pos.y, 0.05, 10));
+                        ecs.addEntity(makeAsciiAnim('*', 
+                            attacker.pos.x, attacker.pos.y,
+                            defender.pos.x, defender.pos.y,
+                            0.05, 20, 20, [255,255,0], [255,255,0]));
                         defender.hp.curr -= attacker.stats.attack;
                         if (defender.hp.curr <= 0) defender.dead = true;
                     }

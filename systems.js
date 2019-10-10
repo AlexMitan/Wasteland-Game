@@ -25,6 +25,7 @@ function TickSystem() {
         for (let entity of entities) {
             entity.gameState.tick += 1;
             fill(255);
+            textSize(20);
             noStroke();
             text(entity.gameState.tick, 20, 20);
         }
@@ -346,10 +347,12 @@ function CombatSystem() {
                     var defender = unitsB[Math.floor(Math.random()*unitsB.length)];
 
                     if (attacker && defender && Math.random() < 0.1) {
-                        ecs.addEntity(makeAsciiAnim('*', 
+                        ecs.addEntity(makeAsciiProjectile('+',
                             attacker.pos.x, attacker.pos.y,
                             defender.pos.x, defender.pos.y,
-                            0.05, 20, 20, [255,255,0], [255,255,0]));
+                            0.1, attacker.stats.attack * 10,
+                            [255, 255, 0]
+                        ))
                         defender.hp.curr -= attacker.stats.attack;
                         if (defender.hp.curr <= 0) {
                             defender.dead = true;

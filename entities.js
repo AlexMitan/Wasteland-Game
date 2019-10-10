@@ -59,7 +59,7 @@ function makeUnit(hp, attack, speed, squadGuid, size, fill, string) {
 }
 
 function makeBasicUnit(squadGuid) {
-    return makeUnit(10, 1, 5, squadGuid, null, null, 'b');
+    return makeUnit(10, 1.5, 5, squadGuid, null, null, 'b');
 }
 
 function makeAsciiAnim(text, xa, ya, xb, yb, rate, sizeA, sizeB, fillA, fillB) {

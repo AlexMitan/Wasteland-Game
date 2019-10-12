@@ -1,22 +1,5 @@
 // const setOps = require('./setOps');
 
-function ensure(cond, message) {
-    if (!cond) throw message;
-}
-
-function props(obj) {
-    let arr = [];
-    for (let property in obj) {
-        if (obj.hasOwnProperty(property) && obj[property] != undefined) {
-            arr.push(property);
-        }
-    }
-    return arr;
-}
-
-function has(obj, prop) {
-    return obj.hasOwnProperty(prop) && obj[prop] != undefined;
-}
 
 class ECS {
     constructor() {

@@ -12,46 +12,33 @@ ecs.addEntity({
     }
 });
     
-let sys = [
-    new PlayerControlSystem(),
-    new ReticleSystem(),
-    new TickSystem(),
-    
-    new DrawingSystem(),
-    new PositionUnitsSystem(),
-    new AsciiAnimSystem(),
-    new BarSystem(),
-    new VelocitySystem(),
-    new CombatSystem(),
 
-    new CleanupSystem(),
-];
-
-let playerSquad = makeSquad(100, 100, 60, [0, 255, 0, 100]);
+let playerSquad = makeSquad(100, 100, 100, [0, 255, 0, 100]);
 playerSquad.TYPE_PLAYER = true;
-
 ecs.addEntity(playerSquad);
-let captain = makeUnit(100, 15, 100, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
+
+let mookSquad = makeSquad(390, 150, 100, [255, 0, 0, 100]);
+ecs.addEntity(mookSquad);
+let giantSquad = makeSquad(270, 250, 40, [255, 100, 0, 100]);
+ecs.addEntity(giantSquad);
+
+let captain = makeUnit(100, 5, 100, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
 ecs.addEntity(captain);
 for (let i=0; i<6; i++) {
-    let unit = makeUnit(100, 15, 100, playerSquad.guid, 20, [200, 200, 255], '🕵️');
+    let unit = makeUnit(100, 4, 100, playerSquad.guid, 20, [200, 200, 255], '🕵️');
     ecs.addEntity(unit);
     // ecs.addEntity(makeBasicUnit(playerSquad.guid));
 }
 
-let enemySquad = makeSquad(390, 150, 100, [255, 0, 0, 100]);
-ecs.addEntity(enemySquad);
-let enemySquadAlso = makeSquad(270, 230, 30, [255, 100, 0, 100]);
-ecs.addEntity(enemySquadAlso);
 
-ecs.addEntity(makeUnit(400, 10, 400, enemySquadAlso.guid, 40, [200], '🐙'));
+ecs.addEntity(makeUnit(400, 50, 300, giantSquad.guid, 40, [200], '🐙'));
 
-for (let i=0; i<19; i++) {
+for (let i=0; i<7; i++) {
     let unit;
-    if (Math.random() < 0.1) 
-        unit = makeUnit(300, 10, 400, enemySquad.guid, 30, [200], '👹');
+    if (Math.random() < 0.15) 
+        unit = makeUnit(300, 10, 400, mookSquad.guid, 30, [200], '👹');
     else
-        unit = makeUnit(50, 1, 100, enemySquad.guid, 10, [200], '💀');
+        unit = makeUnit(30, 2, 100, mookSquad.guid, 10, [200], '💀');
         
     ecs.addEntity(unit);
 }
@@ -67,6 +54,24 @@ ecs.addEntity({
 
 // ecs.addEntity(makeAsciiAnim('test', 100, 100, 120, 150, 0.05, 20, 40, [255, 255], [255, 0]));
 
+let sys = [
+    new TickSystem(),
+    new ApplyModsSystem(),
+    new CalculateStatsSystem(),
+    new DrawingSystem(),
+    new PositionUnitsSystem(),
+
+    new PlayerControlSystem(),
+    new ReticleSystem(),
+    new VelocitySystem(),
+
+    new UnitUpdateSystem(),
+    
+    new AsciiAnimSystem(),
+    new CombatSystem(),
+    new BarSystem(),
+    new CleanupSystem(),
+];
 function draw() {
     background(0);
     ecs.updateManager();

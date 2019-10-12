@@ -39,20 +39,46 @@ function makeSquad(x, y, r, fill, stroke) {
     }
 } 
 
+function makeMod(stat, prio, change) {
+    return {
+        stat, prio, change
+    }
+}
+
+function makeMulMod(stat, factor) {
+    return makeMod(stat, 1, stat => stat * factor);
+}
+
+function makeAddMod(stat, add) {
+    return makeMod(stat, 1, stat => stat + add);
+}
+
+function makeModArea(x, y, r, mod) {
+    return {
+        pos: {x, y},
+
+    }
+}
 function makeUnit(hp, attack, cooldown, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,
-        pos: {x: 0, y: 0},
+        pos: {x, y},
+        mods: [],
         stats: {
             hp: {
+                max: hp,
                 base: hp,
-                curr: hp,
+                curr: 0,
             },
             cooldown: {
+                max: cooldown * 2,
                 base: cooldown,
                 curr: 0,
             },
-            attack,
+            attack: {
+                base: attack,
+                curr: 0
+            },
         },
         textRender: {
             size: size || 20,

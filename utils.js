@@ -20,3 +20,29 @@ function setText(_size, _fill) {
     fill(_fill);
     noStroke();
 }
+
+function ensure(cond, message) {
+    if (!cond) throw message;
+}
+
+function props(obj) {
+    let arr = [];
+    for (let property in obj) {
+        if (obj.hasOwnProperty(property) && obj[property] != undefined) {
+            arr.push(property);
+        }
+    }
+    return arr;
+}
+
+function has(obj, prop) {
+    return obj.hasOwnProperty(prop) && obj[prop] != undefined;
+}
+
+let debug = 10;
+function debugLog() {
+    if (debug > 0) {
+        debug--;
+        console.log(arguments)
+    }
+}

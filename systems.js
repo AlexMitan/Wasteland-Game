@@ -158,6 +158,7 @@ function CollisionSystem() {
         let entities = ecs.filterEntities(['pos', 'r']);
         for (let entityA of entities) {
             for (let entityB of entities) {
+                if (entityA)
             }
         }
     }
@@ -347,6 +348,7 @@ function BarSystem() {
         }
     }
 }
+
 function UnitUpdateSystem() {
     this.process = function(ecs) {
         // unit updates
@@ -370,12 +372,27 @@ function ApplyModsSystem() {
         prio: 1,
         change: val => max(4, val - 10),
     }
+    // every unit container in contact with a mod applier
+    let squads = ecs.filterEntities(['containsUnits']);
+    let modFields = ecs.filterEntities(['appliesMods']);
+    ecs.addEntity(makeNote('forest!', modFields[0].pos.x, modFields[0].pos.y));
+    for (let squad of squads) {
+        for (let modField of modFields) {
+            if (collide(squad, modField)) {
+                let mods = modField.appliesMods;
+                let units = getUnits(ecs, squad.guid);
+                for (let unit of units) {
+                    unit.mods.push(...mods);
+                }
+            }
+        }
+    }
     this.process = function(ecs) {
         let units = ecs.filterEntities(['stats']);
         for (let unit of units) {
             unit.mods = [];
-            unit.mods.push(mulMod);
-            unit.mods.push(addMod);
+            // unit.mods.push(mulMod);
+            // unit.mods.push(addMod);
             unit.mods.sort(mod => mod.prio);
         }
     }
@@ -499,7 +516,6 @@ function CombatSystem() {
                         //         cooldown: 1.5
                         //     }
                         // };
-                        console.log(unit.stats);
                         let damage = unit.stats.attack.curr * attack.damage;
                         let cooldown = unit.stats.cooldown.max * attack.cooldown;
                         unit.stats.cooldown.base = cooldown;

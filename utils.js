@@ -1,8 +1,8 @@
 /// utils
 function collide(cA, cB) {
-    let distX = abs(cA.pos.x - cB.pos.x),
-        distY = abs(cA.pos.y - cB.pos.y);
-    if (max(distX, distY) > cA.r + cB.r) return false;
+    let distX = Math.abs(cA.pos.x - cB.pos.x),
+        distY = Math.abs(cA.pos.y - cB.pos.y);
+    if (Math.max(distX, distY) > cA.r + cB.r) return false;
     let distSq = distX * distX + distY * distY;
 
     return distSq <= (cA.r + cB.r) * (cA.r + cB.r);

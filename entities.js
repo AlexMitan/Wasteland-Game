@@ -38,6 +38,27 @@ function makeSquad(x, y, r, fill, stroke) {
         stroke: stroke || [255, 0],
     }
 } 
+function makeModArea(x, y, r, mods, fill, stroke) {
+    return {
+        pos: {x, y},
+        r: r || 40,
+        fill: fill || [255, 128],
+        stroke: stroke || [255, 0],
+        appliesMods: mods,
+    }
+}
+
+function makeCollision(entityA, entityB) {
+    return {
+        collision: {
+            entityA, entityB
+        }
+    }
+}
+
+function makeNote(text, x, y, rate) {
+    return makeAsciiProjectile(text, x, y, x, y-10, rate || 0.1, 20, [255]);
+}
 
 function makeMod(stat, prio, change) {
     return {
@@ -53,16 +74,10 @@ function makeAddMod(stat, add) {
     return makeMod(stat, 1, stat => stat + add);
 }
 
-function makeModArea(x, y, r, mod) {
-    return {
-        pos: {x, y},
-
-    }
-}
 function makeUnit(hp, attack, cooldown, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,
-        pos: {x, y},
+        pos: {x:0, y:0},
         mods: [],
         stats: {
             hp: {
@@ -79,6 +94,10 @@ function makeUnit(hp, attack, cooldown, squadGuid, size, fill, string) {
                 base: attack,
                 curr: 0
             },
+            speed: {
+                base: 5,
+                curr: 0,
+            }
         },
         textRender: {
             size: size || 20,

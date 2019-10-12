@@ -50,17 +50,20 @@ ecs.addEntity({
     fill: [100, 100, 255],
     pos: { x:100, y:100 },
 });
-
-
+  
+let forest = ecs.addEntity(makeModArea(200, 300, 30,
+    [makeMulMod('attack', 5)],
+    [0, 255, 100, 100]));
 // ecs.addEntity(makeAsciiAnim('test', 100, 100, 120, 150, 0.05, 20, 40, [255, 255], [255, 0]));
 
 let sys = [
     new TickSystem(),
     new ApplyModsSystem(),
     new CalculateStatsSystem(),
-    new DrawingSystem(),
     new PositionUnitsSystem(),
-
+    
+    new DrawingSystem(),
+    
     new PlayerControlSystem(),
     new ReticleSystem(),
     new VelocitySystem(),

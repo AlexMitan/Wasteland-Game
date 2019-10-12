@@ -14,3 +14,9 @@ function getUnits(ecs, squadGuid) {
 function pickFrom(arr) {
     return arr[Math.floor(Math.random()*arr.length)]
 }
+
+function setText(_size, _fill) {
+    textSize(_size);
+    fill(_fill);
+    noStroke();
+}

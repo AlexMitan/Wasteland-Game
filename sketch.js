@@ -20,7 +20,7 @@ let sys = [
     new DrawingSystem(),
     new PositionUnitsSystem(),
     new AsciiAnimSystem(),
-    new HpBarSystem(),
+    new BarSystem(),
     new VelocitySystem(),
     new CombatSystem(),
 
@@ -32,20 +32,26 @@ playerSquad.TYPE_PLAYER = true;
 
 ecs.addEntity(playerSquad);
 for (let i=0; i<5; i++) {
-    let unit = makeUnit(20, 3, 3, playerSquad.guid, 30, [200, 200, 255], 'B');
+    let unit = makeUnit(100, 5, 100, playerSquad.guid, 20, [200, 200, 255], '🕵️');
     ecs.addEntity(unit);
     // ecs.addEntity(makeBasicUnit(playerSquad.guid));
 }
 
-let enemySquad = makeSquad(160, 100, 80, [255, 0, 0, 100]);
+let enemySquad = makeSquad(260, 100, 80, [255, 0, 0, 100]);
 ecs.addEntity(enemySquad);
+let enemySquadAlso = makeSquad(180, 180, 50, [255, 100, 0, 100]);
+ecs.addEntity(enemySquadAlso);
+
+ecs.addEntity(makeUnit(400, 10, 400, enemySquadAlso.guid, 40, [200], '🧟‍'));
+
 for (let i=0; i<19; i++) {
-    // let unit;
-    // if (Math.random() < 0.3) 
-    //     unit = makeUnit(20, 5, 5, enemySquad.guid, 15, [200], '[T]');
-    // else
-    //     unit = makeUnit(15, 5, 5, enemySquad.guid, 7, [200], '..');
-    ecs.addEntity(makeBasicUnit(enemySquad.guid));
+    let unit;
+    if (Math.random() < 0.1) 
+        unit = makeUnit(300, 10, 400, enemySquad.guid, 30, [200], '👹');
+    else
+        unit = makeUnit(50, 1, 100, enemySquad.guid, 10, [200], '💀');
+        
+    ecs.addEntity(unit);
 }
 
 // reticle

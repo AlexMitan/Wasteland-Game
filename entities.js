@@ -28,6 +28,8 @@ function makeSquad(x, y, r, fill, stroke) {
     return {
         containsUnits: {
         },
+        lastCombat: new Set(),
+        currentCombat: new Set(),
         speed: 5,
         vel: {x: 0, y: 0},
         pos: {x, y},
@@ -62,7 +64,7 @@ function makeUnit(hp, attack, cooldown, squadGuid, size, fill, string) {
 }
 
 function makeBasicUnit(squadGuid) {
-    return makeUnit(10, 1.5, 5, squadGuid, null, null, 'b');
+    return makeUnit(10, 2, 10, squadGuid, 10, [255], 'T');
 }
 
 function makeAsciiAnim(text, xa, ya, xb, yb, rate, sizeA, sizeB, fillA, fillB) {

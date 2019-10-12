@@ -38,5 +38,12 @@ function difference(setA, ...sets) {
     }
     return _difference;
 }
+
+function equalSets(as, bs) {
+    if (as.size !== bs.size) return false;
+    for (var a of as) if (!bs.has(a)) return false;
+    return true;
+}
+
 let setOps = { isSuperset, union, intersection, difference }
 // module.exports = setOps;

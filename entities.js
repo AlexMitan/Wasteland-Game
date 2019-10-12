@@ -34,6 +34,7 @@ function makeSquad(x, y, r, fill, stroke) {
         vel: {x: 0, y: 0},
         pos: {x, y},
         r: r || 40,
+        collisions: null,
         fill: fill || [255, 128],
         stroke: stroke || [255, 0],
     }
@@ -42,6 +43,7 @@ function makeModArea(x, y, r, mods, fill, stroke) {
     return {
         pos: {x, y},
         r: r || 40,
+        collisions: null,
         fill: fill || [255, 128],
         stroke: stroke || [255, 0],
         appliesMods: mods,

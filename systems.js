@@ -19,6 +19,7 @@ function HpToRadiusSystem() {
         }
     }
 }
+
 function TickSystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['gameState']);
@@ -102,6 +103,17 @@ function LifetimeSystem() {
 
 function CleanupSystem() {
     this.process = function(ecs) {
+        // clean up empty squads
+        let squads = ecs.filterEntities(['containsUnits']);
+        for (let squad of squads) {
+            let units = getUnits(ecs, squad.guid);
+            if (units.length === 0) {
+                squadA.dead = true;
+                ecs.updateEntity(squadA);
+                continue;
+            }
+        }
+        
         let entities = ecs.filterEntities(['dead']);
         for (let entity of entities) {
             if (entity.dead === true){
@@ -157,8 +169,14 @@ function CollisionSystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['pos', 'r']);
         for (let entityA of entities) {
+            entityA.collisions = new Set();
             for (let entityB of entities) {
-                if (entityA)
+                if (entityA !== entityB && collide(entityA, entityB)) {
+                    entityA.collisions.add(entityB.guid);
+                }
+                // setText(30, 255);
+                // text([...entityA.collisions].join(','), 
+                //     entityA.pos.x, entityA.pos.y - entityA.r);
             }
         }
     }
@@ -415,30 +433,27 @@ function CalculateStatsSystem () {
 
 function CombatSystem() {
     this.process = function(ecs) {
-        let entities = ecs.filterEntities(['containsUnits']);
+        let squads = ecs.filterEntities(['containsUnits']);
         let units = ecs.filterEntities(['stats']);
 
         // determine dead squads and conflict situations
-        for (let squadA of entities) {
-            let units = getUnits(ecs, squadA.guid);
-            // HACK, ignore and clean up empty squads1
-            if (units.length === 0) {
-                squadA.dead = true;
-                ecs.updateEntity(squadA);
-                continue;
-            }
+        for (let squadA of squads) {
+            
             setText(30, [200, 200, 0]);
             // text("id:" + squadA.guid, squadA.pos.x - 20, squadA.pos.y + squadA.r + 20);
 
             // collisions to determine current combat situation
+            // TODO: use collisions from system
             squadA.lastCombat = squadA.currentCombat;
-            squadA.currentCombat = new Set();
+            let enemySquads = new Set(squads
+                .filter(s => s !== squadA)
+                .map(s => s.guid));
 
-            for (let squadB of entities) {
-                if (squadA !== squadB && collide(squadA, squadB)) {
-                    squadA.currentCombat.add(squadB.guid);
-                }
-            }
+            squadA.currentCombat = intersection(squadA.collisions, enemySquads);
+
+            setText(30, 255);
+            text([...squadA.currentCombat].join(','), 
+                squadA.pos.x, squadA.pos.y - squadA.r - 30);
 
             // new contact situation, make units go on initial cooldown
             if (squadA.currentCombat.size > 0 && 
@@ -459,7 +474,7 @@ function CombatSystem() {
         }
 
         // make each unit off cd act
-        for (let squadA of entities) {
+        for (let squadA of squads) {
             let { currentCombat } = squadA;
             if (currentCombat.size === 0) continue;
             let targets = units.filter(u => currentCombat.has(u.squadGuid));

@@ -58,10 +58,12 @@ let forest = ecs.addEntity(makeModArea(200, 300, 30,
 
 let sys = [
     new TickSystem(),
+    new CollisionSystem(),
     new ApplyModsSystem(),
     new CalculateStatsSystem(),
-    new PositionUnitsSystem(),
+    new CombatSystem(),
     
+    new PositionUnitsSystem(),
     new DrawingSystem(),
     
     new PlayerControlSystem(),
@@ -71,7 +73,6 @@ let sys = [
     new UnitUpdateSystem(),
     
     new AsciiAnimSystem(),
-    new CombatSystem(),
     new BarSystem(),
     new CleanupSystem(),
 ];

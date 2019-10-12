@@ -348,16 +348,16 @@ function BarSystem() {
 function CombatSystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['containsUnits']);
+
         // reduce cooldowns
         let units = ecs.filterEntities(['stats']);
         for (let unit of units) {
-            // textSize(10);
-            // noStroke();
-            // fill(255);
+            setText(20, [255]);
+            text(unit.guid, unit.pos.x - 5, unit.pos.y - 20);
             unit.stats.cooldown.curr = max(unit.stats.cooldown.curr - 1, 0);
-            // text(unit.stats.cooldown.curr, unit.pos.x, unit.pos.y);
         }
 
+        // determine conflict situations
         for (let squadA of entities) {
             let units = getUnits(ecs, squadA.guid);
             // HACK, ignore and clean up empty squads1
@@ -379,46 +379,60 @@ function CombatSystem() {
                 }
             }
 
-            // new contact situation
+            // new contact situation, make units go on initial cooldown
             if (squadA.currentCombat.size > 0 && 
                 !equalSets(squadA.lastCombat, squadA.currentCombat) &&
                 isSuperset(squadA.currentCombat, squadA.lastCombat)) {
-            // if (!equalSets(squadA.lastCombat, squadA.currentCombat)) {
                 ecs.addEntity(makeAsciiProjectile([...squadA.currentCombat].join(','),
                                 squadA.pos.x, squadA.pos.y,
                                 squadA.pos.x, squadA.pos.y - 30,
                                 0.05, 50,
                                 [255, 255, 100]
                             ))
+                // units go on initial cooldown
                 for (let unit of units) {
                     unit.stats.cooldown.curr += Math.random() * unit.stats.cooldown.base;
                 }
             }
-                    // let unitsB = getUnits(ecs, squadB.guid);
-                    // // HACK
-                    // if (unitsB.length === 0) continue;
-                    // // if no cooldown
-                    // for (let attacker of units) {
-                    //     if(attacker.stats.cooldown.curr === 0) {
 
-                    //         var defender = pickFrom(unitsB);
-                    //         ecs.addEntity(makeAsciiProjectile('+',
-                    //             attacker.pos.x, attacker.pos.y,
-                    //             defender.pos.x, defender.pos.y,
-                    //             0.1, attacker.stats.attack * 10,
-                    //             [255, 255, 0]
-                    //         ))
-                    //         // attack
-                    //         defender.stats.hp.curr -= attacker.stats.attack;
-                    //         if (defender.stats.hp.curr <= 0) {
-                    //             defender.dead = true;
-                    //             ecs.updateEntity(defender);
-                    //         }
-                    //         // go on cooldown
-                    //         attacker.stats.cooldown.curr = attacker.stats.cooldown.base;
-                //         }
-                //     }
-                // }
         }
+
+        // make each unit off cd act
+        for (let squadA of entities) {
+            let { currentCombat } = squadA;
+            let targets = units.filter(u => currentCombat.has(u.squadGuid));
+            setText(50, [0, 0, 255]);
+            text([...targets.map(t => t.guid)].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
+            // {2, 5} -> squads targeted
+            // for (let enemySquadId in currentCombat) {
+            //     // squad ID
+            //     let enemyUnits = getUnits()
+            // }
+        }
+        // let unitsB = getUnits(ecs, squadB.guid);
+        // // HACK
+        // if (unitsB.length === 0) continue;
+        // // if no cooldown
+        // for (let attacker of units) {
+        //     if(attacker.stats.cooldown.curr === 0) {
+
+        //         var defender = pickFrom(unitsB);
+        //         ecs.addEntity(makeAsciiProjectile('+',
+        //             attacker.pos.x, attacker.pos.y,
+        //             defender.pos.x, defender.pos.y,
+        //             0.1, attacker.stats.attack * 10,
+        //             [255, 255, 0]
+        //         ))
+        //         // attack
+        //         defender.stats.hp.curr -= attacker.stats.attack;
+        //         if (defender.stats.hp.curr <= 0) {
+        //             defender.dead = true;
+        //             ecs.updateEntity(defender);
+        //         }
+        //         // go on cooldown
+        //         attacker.stats.cooldown.curr = attacker.stats.cooldown.base;
+    //         }
+    //     }
+    // }
     }
 }

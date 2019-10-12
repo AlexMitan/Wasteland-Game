@@ -43,6 +43,6 @@ let debug = 10;
 function debugLog() {
     if (debug > 0) {
         debug--;
-        console.log(arguments)
+        console.log(...arguments)
     }
 }

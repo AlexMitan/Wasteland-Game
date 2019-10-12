@@ -39,7 +39,7 @@ function makeSquad(x, y, r, fill, stroke) {
         stroke: stroke || [255, 0],
     }
 } 
-function makeModArea(x, y, r, mods, fill, stroke) {
+function makeModField(x, y, r, mods, fill, stroke) {
     return {
         pos: {x, y},
         r: r || 40,

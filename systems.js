@@ -108,7 +108,7 @@ function CleanupSystem() {
         for (let squad of squads) {
             let units = getUnits(ecs, squad.guid);
             if (units.length === 0) {
-                squadA.dead = true;
+                squad.dead = true;
                 ecs.updateEntity(squadA);
                 continue;
             }
@@ -390,42 +390,51 @@ function ApplyModsSystem() {
         prio: 1,
         change: val => max(4, val - 10),
     }
-    // every unit container in contact with a mod applier
-    let squads = ecs.filterEntities(['containsUnits']);
-    let modFields = ecs.filterEntities(['appliesMods']);
-    ecs.addEntity(makeNote('forest!', modFields[0].pos.x, modFields[0].pos.y));
-    for (let squad of squads) {
-        for (let modField of modFields) {
-            if (collide(squad, modField)) {
-                let mods = modField.appliesMods;
-                let units = getUnits(ecs, squad.guid);
-                for (let unit of units) {
-                    unit.mods.push(...mods);
+    let exampleModField = makeModField();
+    this.process = function(ecs) {
+        // every unit container in contact with a mod applier
+        let squads = ecs.filterEntities(['containsUnits']);
+        let modFields = ecs.filterEntities(['appliesMods']);
+
+        // reset mods
+        let moddables = ecs.filterEntities(['mods']);
+        for (let moddable of moddables) {
+            moddable.mods = [];
+        }
+
+        // apply mods
+        for (let squad of squads) {
+            for (let modField of modFields) {
+                if (collide(squad, modField)) {
+                    let mods = modField.appliesMods;
+                    let units = getUnits(ecs, squad.guid);
+                    for (let unit of units) {
+                        unit.mods.push(...mods);
+                    }
+                    for (let unit of units) {
+                        setText(20, 255);
+                        text(unit.mods.length + '!', unit.pos.x - 40, unit.pos.y);
+                    }
                 }
             }
         }
-    }
-    this.process = function(ecs) {
         let units = ecs.filterEntities(['stats']);
-        for (let unit of units) {
-            unit.mods = [];
-            // unit.mods.push(mulMod);
-            // unit.mods.push(addMod);
-            unit.mods.sort(mod => mod.prio);
-        }
     }
 }
 function CalculateStatsSystem () {
     this.process = function(ecs) {
         let units = ecs.filterEntities(['stats']);
         for (let unit of units) {
+            if (unit.mods.length > 0) debugLog(unit.mods);
             let { stats } = unit;
-            for (let stat of props(stats)) {
+            let statNames = props(stats);
+            for (let stat of statNames) {
                 stats[stat].curr = stats[stat].base;
             }
+            unit.mods.sort(mod => mod.prio);
             for (let mod of unit.mods) {
                 let { stat, change } = mod;
-                stats[stat].curr = mod.change(stats[stat].curr);
+                stats[stat].curr = change(stats[stat].curr);
             }
         }
     }

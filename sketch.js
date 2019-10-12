@@ -22,7 +22,7 @@ ecs.addEntity(mookSquad);
 let giantSquad = makeSquad(270, 250, 40, [255, 100, 0, 100]);
 ecs.addEntity(giantSquad);
 
-let captain = makeUnit(100, 5, 100, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
+let captain = makeUnit(100, 15, 100, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
 ecs.addEntity(captain);
 for (let i=0; i<6; i++) {
     let unit = makeUnit(100, 4, 100, playerSquad.guid, 20, [200, 200, 255], '🕵️');
@@ -51,9 +51,12 @@ ecs.addEntity({
     pos: { x:100, y:100 },
 });
   
-let forest = ecs.addEntity(makeModArea(200, 300, 30,
-    [makeMulMod('attack', 5)],
+let forest1 = ecs.addEntity(makeModField(200, 300, 30,
+    [makeMulMod('attack', 1.5)],
     [0, 255, 100, 100]));
+let forest2 = ecs.addEntity(makeModField(200, 340, 50,
+    [makeAddMod('attack', 3)],
+    [0, 255, 200, 100]));
 // ecs.addEntity(makeAsciiAnim('test', 100, 100, 120, 150, 0.05, 20, 40, [255, 255], [255, 0]));
 
 let sys = [

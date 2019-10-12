@@ -27,26 +27,28 @@ let sys = [
     new CleanupSystem(),
 ];
 
-let playerSquad = makeSquad(100, 100, 40, [0, 255, 0, 100]);
+let playerSquad = makeSquad(100, 100, 60, [0, 255, 0, 100]);
 playerSquad.TYPE_PLAYER = true;
 
 ecs.addEntity(playerSquad);
-for (let i=0; i<2; i++) {
-    let unit = makeUnit(100, 5, 100, playerSquad.guid, 20, [200, 200, 255], '🕵️');
+let captain = makeUnit(100, 15, 100, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
+ecs.addEntity(captain);
+for (let i=0; i<6; i++) {
+    let unit = makeUnit(100, 15, 100, playerSquad.guid, 20, [200, 200, 255], '🕵️');
     ecs.addEntity(unit);
     // ecs.addEntity(makeBasicUnit(playerSquad.guid));
 }
 
-let enemySquad = makeSquad(290, 140, 80, [255, 0, 0, 100]);
+let enemySquad = makeSquad(390, 150, 100, [255, 0, 0, 100]);
 ecs.addEntity(enemySquad);
-let enemySquadAlso = makeSquad(170, 200, 50, [255, 100, 0, 100]);
+let enemySquadAlso = makeSquad(270, 230, 30, [255, 100, 0, 100]);
 ecs.addEntity(enemySquadAlso);
 
 ecs.addEntity(makeUnit(400, 10, 400, enemySquadAlso.guid, 40, [200], '🐙'));
 
-for (let i=0; i<3; i++) {
+for (let i=0; i<19; i++) {
     let unit;
-    if (Math.random() < 0.3) 
+    if (Math.random() < 0.1) 
         unit = makeUnit(300, 10, 400, enemySquad.guid, 30, [200], '👹');
     else
         unit = makeUnit(50, 1, 100, enemySquad.guid, 10, [200], '💀');

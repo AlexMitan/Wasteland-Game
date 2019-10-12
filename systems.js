@@ -267,13 +267,15 @@ function PositionUnitsSystem() {
             if (myUnits.length > this.ringDict.maxCalculation) {
                 this.init(myUnits.length + 100);
             } 
+            let maxRing = max(1, getRing(myUnits.length - 1));
             // render its units
             for (let i=0; i<myUnits.length; i++) {
                 let ring = this.ringDict.ringOf[i];
                 let ringBounds = this.ringDict.ringBounds[ring];
                 let angle = map(i, ringBounds[0], ringBounds[1] + 1, 0, TAU);
                 let unit = myUnits[i];
-                let offset = ring * 30;
+                // let offset = ring * squad.r / sqrt(myUnits.length) * 2;
+                let offset = ring / maxRing * squad.r * 0.8;
                 let unitX = squad.pos.x + cos(angle) * offset,
                     unitY = squad.pos.y + sin(angle) * offset;
 
@@ -349,15 +351,20 @@ function CombatSystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['containsUnits']);
 
-        // reduce cooldowns
+        // unit updates
         let units = ecs.filterEntities(['stats']);
         for (let unit of units) {
-            setText(20, [255]);
-            text(unit.guid, unit.pos.x - 5, unit.pos.y - 20);
+            // setText(20, [255]);
+            // text(unit.guid, unit.pos.x - 5, unit.pos.y - 20);
             unit.stats.cooldown.curr = max(unit.stats.cooldown.curr - 1, 0);
+            if (unit.stats.hp.curr <= 0) {
+                unit.dead = true;
+                ecs.updateEntity(unit);
+            }
+                
         }
 
-        // determine conflict situations
+        // determine dead squads and conflict situations
         for (let squadA of entities) {
             let units = getUnits(ecs, squadA.guid);
             // HACK, ignore and clean up empty squads1
@@ -400,14 +407,28 @@ function CombatSystem() {
         // make each unit off cd act
         for (let squadA of entities) {
             let { currentCombat } = squadA;
+            if (currentCombat.size === 0) continue;
             let targets = units.filter(u => currentCombat.has(u.squadGuid));
-            setText(50, [0, 0, 255]);
-            text([...targets.map(t => t.guid)].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
-            // {2, 5} -> squads targeted
-            // for (let enemySquadId in currentCombat) {
-            //     // squad ID
-            //     let enemyUnits = getUnits()
-            // }
+            let readyUnits = units.filter(u => u.squadGuid === squadA.guid &&
+                                               u.stats.cooldown.curr === 0);
+                                               
+            // let targetIds = targets.map(t => t.guid);
+            // display target ids
+            // setText(50, [0, 255, 255]);
+            // text([...targetIds].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
+            
+            for (let unit of readyUnits) {
+                let ux = unit.pos.x,
+                    uy = unit.pos.y;
+                let target = pickFrom(targets);
+                ecs.addEntity(makeAsciiProjectile('*', ux, uy, target.pos.x, target.pos.y, 0.03, 20, [255, 255, 100, 200]));
+                unit.stats.cooldown.curr = unit.stats.cooldown.base;
+                target.stats.hp.curr -= unit.stats.attack;
+                let lightAttack = {
+                    damage: 1.1,
+                    cooldown: 1.1,
+                }
+            }
         }
         // let unitsB = getUnits(ecs, squadB.guid);
         // // HACK
@@ -425,10 +446,6 @@ function CombatSystem() {
         //         ))
         //         // attack
         //         defender.stats.hp.curr -= attacker.stats.attack;
-        //         if (defender.stats.hp.curr <= 0) {
-        //             defender.dead = true;
-        //             ecs.updateEntity(defender);
-        //         }
         //         // go on cooldown
         //         attacker.stats.cooldown.curr = attacker.stats.cooldown.base;
     //         }

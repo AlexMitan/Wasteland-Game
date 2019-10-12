@@ -1,16 +1,3 @@
-// function BlankSystem(debug=false) {
-//     this.filter = [];
-//     this.debug = debug;
-//     this.process = function(ecs) {
-//         let guids = ecs.filterGuids(this.filter);
-//         this.debug && console.log(`running blank on ${ecs.names(guids)}`);
-//         for (let guid of guids) {
-//             let entity = ecs.hash[guid];
-//             this.debug && console.log(``);
-//         }
-//     }
-// }
-
 function HpToRadiusSystem() {
     this.process = function(ecs) {
         let entities = ecs.filterEntities(['hp']);
@@ -269,18 +256,8 @@ function PositionUnitsSystem() {
 
 
     this.process = function(ecs) {
-        // init
         let squads = ecs.filterEntities(['containsUnits']);
-        // {
-        //     squad: {
-        //         speed: 5
-        //     },
-        //     pos: {x, y},
-        //     r: r || 40,
-        //     fill: fill || [255, 128],
-        //     stroke: stroke || [255, 0],
-        // }
-        // for each squad
+
         for (let squad of squads) {
             let myUnits = getUnits(ecs, squad.guid);
             if (myUnits.length > this.ringDict.maxCalculation) {
@@ -373,7 +350,7 @@ function UnitUpdateSystem() {
         let units = ecs.filterEntities(['stats']);
         for (let unit of units) {
             setText(20, [255]);
-            text(unit.guid, unit.pos.x - 5, unit.pos.y - 20);
+            // text(unit.guid, unit.pos.x - 5, unit.pos.y - 20);
             unit.stats.cooldown.base = max(unit.stats.cooldown.base - 1, 0);
             if (unit.stats.hp.base <= 0) {
                 unit.dead = true;
@@ -425,7 +402,6 @@ function CalculateStatsSystem () {
     this.process = function(ecs) {
         let units = ecs.filterEntities(['stats']);
         for (let unit of units) {
-            if (unit.mods.length > 0) debugLog(unit.mods);
             let { stats } = unit;
             let statNames = props(stats);
             for (let stat of statNames) {

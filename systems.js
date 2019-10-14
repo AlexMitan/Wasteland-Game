@@ -101,15 +101,15 @@ function VisibilitySystem() {
                 .map(u => u.stats.sensors.curr)
                 .reduce((acc, curr) => acc + curr);
 
-            // setText(40, [255, 100]);
-            // text('vis:' + visibility, squad.pos.x, squad.pos.y + squad.r);
-            stroke(255, 100);
+            setText(40, [128]);
+            text('size:' + visibility, squad.pos.x + squad.r, squad.pos.y - squad.r);
+            stroke(128);
             noFill();
             circle(squad.pos.x, squad.pos.y, visibility * 2);
 
-            // setText(40, [0, 255, 255, 100]);
-            // text('sens:' + sensors, squad.pos.x, squad.pos.y + squad.r - 30);
-            stroke([0, 255, 255, 100]);
+            setText(40, [0, 255, 255]);
+            text('vision:' + sensors, squad.pos.x + squad.r, squad.pos.y - squad.r - 30);
+            stroke([0, 255, 255]);
             noFill();
             circle(squad.pos.x, squad.pos.y, sensors * 2);
 
@@ -121,6 +121,7 @@ function VisibilitySystem() {
             for (let squadB of squads) {
                 // S---|          : 4
                 //       |-----V  : 6
+                //      @
                 // S-----------V  : 11
                 if (squadA === squadB) continue;
                 let distAB = dist(squadA.pos.x, squadA.pos.y, squadB.pos.x, squadB.pos.y);
@@ -128,14 +129,17 @@ function VisibilitySystem() {
                 let visB = squadB.squadStats.visibility
                 let detectDist = distAB - (sensA + visB);
                 setText(20, 255);
-                text('👁️' + detectDist, 
-                    (squadA.pos.x * 2 + squadB.pos.x) / 3, 
-                    (squadA.pos.y * 2 + squadB.pos.y) / 3);
                 // text('👁️', (squadA.pos.x + squadB.pos.x) / 2, (squadA.pos.y + squadB.pos.y) / 2);
                 if (detectDist < 0) {
                     stroke(0, 255, 255, 100);
                     line(squadA.pos.x, squadA.pos.y, squadB.pos.x, squadB.pos.y);
-                } else {
+                } else if (detectDist < 200) {
+                    // text('👁️' + Math.round(detectDist), 
+                    //     (squadA.pos.x * 2 + squadB.pos.x) / 3, 
+                    //     (squadA.pos.y * 2 + squadB.pos.y) / 3);
+                    text('👁️' + Math.round(detectDist), 
+                        (squadA.pos.x * visB + squadB.pos.x * sensA) / (visB + sensA), 
+                        (squadA.pos.y * visB + squadB.pos.y * sensA) / (visB + sensA));
                 }
             }
         }

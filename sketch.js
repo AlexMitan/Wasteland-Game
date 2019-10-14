@@ -20,7 +20,7 @@ ecs.addEntity(playerSquad);
 let giantSquad = makeSquad(350, 400, 40, [255, 100, 0, 100]);
 ecs.addEntity(giantSquad);
 
-let captain = makeUnit(100, 15, 100, 30, 20, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
+let captain = makeUnit(100, 15, 100, 50, 20, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
 ecs.addEntity(captain);
 for (let i=0; i<6; i++) {
     let unit = makeUnit(100, 4, 100, 15, 15, playerSquad.guid, 20, [200, 200, 255], '🕵️');

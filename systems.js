@@ -330,16 +330,18 @@ function BarSystem() {
         let entities = ecs.filterEntities(['stats']);
         for (let entity of entities) { 
             let hp = entity.stats.hp;
+            let maxHp = entity.stats.maxHp;
             let cooldown = entity.stats.cooldown;
+            let maxCooldown = entity.stats.maxCooldown;
             noStroke();
             // cooldown bar
             fill(200, 200, 0);
-            rect(entity.pos.x - 6, entity.pos.y + 9, map(cooldown.base, 0, cooldown.max, 0, 10), 4)
+            rect(entity.pos.x - 6, entity.pos.y + 9, map(cooldown.base, 0, maxCooldown.base, 0, 10), 4)
             // hp bar
             fill(200, 0, 0);
             rect(entity.pos.x - 6, entity.pos.y + 6, 10, 4);
             fill(0, 200, 0);
-            rect(entity.pos.x - 6, entity.pos.y + 6, map(hp.base, 0, hp.max, 0, 10), 4);
+            rect(entity.pos.x - 6, entity.pos.y + 6, map(hp.base, 0, maxHp.curr, 0, 10), 4);
         }
     }
 }
@@ -452,7 +454,7 @@ function CombatSystem() {
                             ))
                 // units go on initial cooldown
                 for (let unit of units) {
-                    unit.stats.cooldown.base = Math.random() * unit.stats.cooldown.max;
+                    unit.stats.cooldown.base = Math.random() * unit.stats.maxCooldown.base;
                 }
             }
 
@@ -481,7 +483,7 @@ function CombatSystem() {
                 let wTargets = [];
                 let wSum = 0;
                 for (let target of targets) {
-                    let weight = 1 / (target.stats.hp.base / target.stats.hp.max);
+                    let weight = 1 / (target.stats.hp.base / target.stats.maxHp.curr);
                     // ecs.addEntity(makeAsciiProjectile(weight, 
                     //     target.pos.x, target.pos.y + 10,
                     //     target.pos.x, target.pos.y + 10, 0.5, 16, [255]));
@@ -517,7 +519,7 @@ function CombatSystem() {
                         //     }
                         // };
                         let damage = unit.stats.attack.curr * attack.damage;
-                        let cooldown = unit.stats.cooldown.max * attack.cooldown;
+                        let cooldown = unit.stats.maxCooldown.base * attack.cooldown;
                         unit.stats.cooldown.base = cooldown;
                         target.stats.hp.base -= damage;
                         ecs.addEntity(makeAsciiProjectile(round(damage), ux, uy, target.pos.x, target.pos.y, 0.05, damage + 10, [255, 255, 100, 200]));

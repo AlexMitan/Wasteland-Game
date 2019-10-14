@@ -75,21 +75,29 @@ function makeMulMod(stat, factor) {
 function makeAddMod(stat, add) {
     return makeMod(stat, 1, stat => stat + add);
 }
-
+function compStat(base, curr) {
+    return {base, curr}
+}
 function makeUnit(hp, attack, cooldown, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,
         pos: {x:0, y:0},
         mods: [],
         stats: {
-            hp: {
-                max: hp,
+            maxHp : {
                 base: hp,
-                curr: 0,
+                curr: hp,
+            },
+            hp: {
+                base: hp,
+                curr: hp,
+            },
+            maxCooldown: {
+                base: cooldown * 2,
+                base: cooldown,
             },
             cooldown: {
-                max: cooldown * 2,
-                base: cooldown,
+                base: 0,
                 curr: 0,
             },
             attack: {

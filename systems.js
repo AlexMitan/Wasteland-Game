@@ -93,7 +93,8 @@ function VisibilitySystem() {
         let squads = ecs.filterEntities(['containsUnits']);
         for (let squad of squads) {
             let units = getUnits(ecs, squad.guid);
-
+            // HACK: ignore empty squads
+            if (units.length === 0) continue;
             let visibility = units
                 .map(u => u.stats.visibility.curr)
                 .reduce((acc, curr) => acc + curr);
@@ -137,11 +138,11 @@ function VisibilitySystem() {
                     stroke(0, 255, 255, 100);
                     line(squadA.pos.x, squadA.pos.y, squadB.pos.x, squadB.pos.y);
                 } else if (detectDist < 200) {
-                    let angle = atan2(distY, distX);
-                    let eyeX = squadA.pos.x + cos(angle) * (visB + sensA - squadB.r);
-                    let eyeY = squadA.pos.y + sin(angle) * (visB + sensA - squadB.r);
-                    text('👁️' + Math.round(detectDist),
-                        eyeX, eyeY);
+                    // let angle = atan2(distY, distX);
+                    // let eyeX = squadA.pos.x + cos(angle) * (visB + sensA - squadB.r);
+                    // let eyeY = squadA.pos.y + sin(angle) * (visB + sensA - squadB.r);
+                    // text('👁️' + Math.round(detectDist),
+                    //     eyeX, eyeY);
                     // text('👁️' + Math.round(detectDist), 
                     //     (squadA.pos.x * visB + squadB.pos.x * sensA) / (visB + sensA), 
                     //     (squadA.pos.y * visB + squadB.pos.y * sensA) / (visB + sensA));
@@ -448,10 +449,10 @@ function ApplyModsSystem() {
                         unit.mods.push(...mods);
                     }
                     // display applied mods
-                    // for (let unit of units) {
-                        // setText(20, 255);
-                        // text(unit.mods.length + '!', unit.pos.x - 40, unit.pos.y);
-                    // }
+                    for (let unit of units) {
+                        setText(20, 255);
+                        text('  !', unit.pos.x - 40, unit.pos.y);
+                    }
                 }
             }
         }
@@ -471,140 +472,6 @@ function CalculateStatsSystem () {
             for (let mod of unit.mods) {
                 let { stat, change } = mod;
                 stats[stat].curr = change(stats[stat].curr);
-            }
-        }
-    }
-}
-
-function CombatSystem() {
-    this.process = function(ecs) {
-        let squads = ecs.filterEntities(['containsUnits']);
-        let units = ecs.filterEntities(['stats']);
-
-        // determine dead squads and encounters
-        for (let squadA of squads) {
-            let units = getUnits(ecs, squadA.guid);
-            if (units.length === 0) {
-                squadA.dead = true;
-                ecs.updateEntity(squadA);
-                continue;
-            }
-            setText(30, [200, 200, 0]);
-            // text("id:" + squadA.guid, squadA.pos.x - 20, squadA.pos.y + squadA.r + 20);
-
-            // collisions to determine current combat situation
-            // TODO: use collisions from system
-            squadA.lastEncounter = squadA.currentEncounter;
-            let squadsInEncounter = new Set(squads
-                // .filter(s => s !== squadA)
-                .map(s => s.guid));
-                
-                
-            squadA.currentEncounter = intersection(squadA.collisions, squadsInEncounter);
-            squadA.currentEncounter.add(squadA.guid);
-
-
-            // new contact situation, make units go on initial cooldown
-            if (squadA.currentEncounter.size > 0 && 
-                !equalSets(squadA.lastEncounter, squadA.currentEncounter) &&
-                isSuperset(squadA.currentEncounter, squadA.lastEncounter)) {
-                ecs.addEntity(makeAsciiProjectile([...squadA.currentEncounter].join(','),
-                                squadA.pos.x, squadA.pos.y,
-                                squadA.pos.x, squadA.pos.y - 30,
-                                0.05, 50,
-                                [255, 255, 100]
-                            ))
-                // units go on initial cooldown
-                for (let unit of units) {
-                    unit.stats.cooldown.base = Math.random() * unit.stats.maxCooldown.curr;
-                }
-            }
-
-        }
-
-        // make each unit off cd act
-        for (let squadA of squads) {
-            let { currentEncounter } = squadA;
-            if (currentEncounter.size === 1) continue;
-            setText(30, 255);
-            debugLog(currentEncounter);
-            text('id:' + squadA.guid + ' in ' + [...currentEncounter].join(','), 
-                squadA.pos.x, squadA.pos.y - squadA.r - 30);
-                
-            // get potential targets
-            let targets = units.filter(u => currentEncounter.has(u.squadGuid));
-            // get ready units in squadA
-            let readyUnits = units.filter(u => u.squadGuid === squadA.guid &&
-                                               u.stats.cooldown.base === 0);
-                                               
-            // display target ids
-            // setText(10, [0, 255, 100]);
-            // let targetIds = targets.map(t => t.guid);
-            // text([...targetIds].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
-
-            for (let unitA of readyUnits) {
-                let ux = unitA.pos.x,
-                    uy = unitA.pos.y;
-                // let target = pickFrom(targets);
-                // let target = targets.sort(unitA => -unitA.stats.attack)[0];
-                // let wList = targets -->[ [4, {}], [2, {}] ];
-                // build weight list
-                function attackWeight(targets) {
-                    let wList = [];
-                    let wSum = 0;
-                    for (let target of targets) {
-                        let weight = 30 + 70 * (1 - target.stats.hp.base / target.stats.maxHp.curr);
-                        if (target.squadGuid === unitA.squadGuid) {
-                            weight = 0;
-                        } else 
-                            ecs.addEntity(makeAsciiProjectile(Math.round(weight), 
-                                target.pos.x, target.pos.y + 10,
-                                target.pos.x, target.pos.y + 15, 0.1, 16, [255]));
-                        // rect(target.pos.x, target.pos.y - 40, weight * 5, 4);
-                        wList.push([weight, target]);
-                        wSum += weight;
-                    }
-                    // sort by weight
-                    wList.sort((a, b) => a[0] < b[0]);
-                    return { 
-                        wList: wList,
-                        wSum: wSum,
-                        wMax: wList[0][0]
-                    }
-                }
-                let { wList, wSum, wMax } = attackWeight(targets); 
-                ecs.addEntity(makeAsciiProjectile(wList.map(pair => Math.round(pair[0])).join(','), 
-                    unitA.pos.x, unitA.pos.y - 10,
-                    unitA.pos.x, unitA.pos.y - 15, 0.06, 16, [255]));
-                
-                function weightedPick(wList, wSum) {
-                    if (wSum === undefined) wSum = wList.reduce((acc, curr) => acc + curr[0]);
-                    let wRand = Math.random() * wSum;
-                    let i=-1;
-                    while (wRand > 0) {
-                        i += 1;
-                        wRand -= wList[i][0];
-                    }
-                    // HACK: nobody to target, move along
-                    if (i === -1) return null;
-    
-                    return wList[i][1];
-                }
-                let target = weightedPick(wList, wSum);
-                if (target === null) continue;
-                // ecs.addEntity(makeAsciiProjectile(target.guid, 
-                //     unit.pos.x, unit.pos.y,
-                //     unit.pos.x + 20, unit.pos.y, 0.05, 20, [255]));
-
-                let basicAttack = {
-                    execute: function(unit, target) {
-                        // damage by attack stat and go on cooldown
-                        target.stats.hp.base -= unit.stats.attack.curr;
-                        unit.stats.cooldown.base = unit.stats.maxCooldown.curr;
-                        ecs.addEntity(makeAsciiProjectile(round(damage), ux, uy, target.pos.x, target.pos.y, 0.05, damage + 10, [255, 255, 100, 200]));
-                    }
-                }
-                basicAttack.execute(unitA, target);
             }
         }
     }

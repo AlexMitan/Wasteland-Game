@@ -18,35 +18,50 @@ playerSquad.TYPE_PLAYER = true;
 ecs.addEntity(playerSquad);
 
 
-let captain = makeUnit(400, 5, 15, 50, 20, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
+let captain = makeUnit(400,
+    30, 0,
+    50, 0,
+    50, 20, 70, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
+
+let makePsion = (squadGuid) => makeUnit(100, 
+    20, 0, 
+    20, 0, 70, 40, 30, squadGuid, 20, null, '🕵️');
+let makeSkeleton = (squadGuid) => makeUnit(30,
+    5, 0.9, 
+    0, 0.1, 
+    60, 10, 15, squadGuid, 10, [200], '💀');
+let makeDemon = (squadGuid) => makeUnit(100, 
+    10, 0.1,
+    40, 0.9, 
+    300, 20, 40, squadGuid, 30, [200], '👹');
+        
 ecs.addEntity(captain);
-// for (let i=0; i<6; i++) {
-//     let unit = makeUnit(100, 4, 100, 15, 15, playerSquad.guid, 20, [200, 200, 255], '🕵️');
-//     ecs.addEntity(unit);
-//     // ecs.addEntity(makeBasicUnit(playerSquad.guid));
-// }
+for (let i=0; i<6; i++) {
+    let psion = makePsion(playerSquad.guid);
+    ecs.addEntity(psion);
+}
 
 
-let giantSquad = makeSquad(380, 360, 60, [255, 100, 0, 100]);
-ecs.addEntity(giantSquad);
-ecs.addEntity(makeUnit(400, 50, 300, 200, 100, giantSquad.guid, 40, [200], '🐙'));
-let squid2 = makeUnit(200, 3, 300, 200, 100, giantSquad.guid, 10, [200], '🐙');
-squid2.stats.hp.base -= 30;
-let squid3 = makeUnit(200, 3, 300, 200, 100, giantSquad.guid, 10, [200], '🐙');
-squid2.stats.hp.base -= 60;
-ecs.addEntity(squid2);
-ecs.addEntity(squid3);
 
 let mookSquad = makeSquad(550, 120, 100, [255, 0, 0, 100]);
 ecs.addEntity(mookSquad);
+for (let i=0; i<4; i++) {
+    ecs.addEntity(makeDemon(mookSquad.guid));
+}
+for (let i=0; i<8; i++) {
+    ecs.addEntity(makeSkeleton(mookSquad.guid));
+}
+// 180, 460 weak to magic
+let useMagicSquad = makeSquad(180, 460, 100, [0, 0, 255, 100]);
+ecs.addEntity(useMagicSquad);
+for (let i=0; i<19; i++) {
+    ecs.addEntity(makeSkeleton(useMagicSquad.guid));
+}
+// 580, 400 weak to phys
+let usePhysSquad = makeSquad(780, 400, 150, [128, 100]);
+ecs.addEntity(usePhysSquad);
 for (let i=0; i<7; i++) {
-    let unit;
-    if (Math.random() < 0.15) 
-        unit = makeUnit(300, 10, 400, 20, 40, mookSquad.guid, 30, [200], '👹');
-    else
-        unit = makeUnit(30, 2, 100, 10, 15, mookSquad.guid, 10, [200], '💀');
-        
-    ecs.addEntity(unit);
+    ecs.addEntity(makeDemon(usePhysSquad.guid));
 }
 
 // reticle
@@ -59,18 +74,26 @@ ecs.addEntity({
 
 // cooldown field
 ecs.addEntity(makeModField(300, 180, 60,
-    [makeMulMod('visibility', 0.5)],
+    [makeMulMod('physDmg', 1.5), makeMulMod('psiDmg', 1.5)],
+    [255, 255, 100, 50]));
+ecs.addEntity(makeModField(480, 560, 130,
+    [makeMulMod('visibility', 0.2)],
     [0, 255, 200, 50]));
-// ecs.addEntity(makeAsciiAnim('test', 100, 100, 120, 150, 0.05, 20, 40, [255, 255], [255, 0]));
+ecs.addEntity(makeAsciiAnim('Touching\n this area\n(while fighting)\n increases\nyour damage', 230, 140, 120, 150, 0.00, 20, 40, [255, 255], [255, 0]));
+ecs.addEntity(makeAsciiAnim('Skeletons are weak to\n magical attacks', 100, 570, 120, 150, 0.00, 20, 40, [255, 255], [255, 0]));
+ecs.addEntity(makeAsciiAnim('Demons are weak to\n physical attacks', 710, 220, 120, 150, 0.00, 20, 40, [255, 255], [255, 0]));
+ecs.addEntity(makeAsciiAnim('Blue lines indicate which\nsquads can see each other', 670, 25, 120, 150, 0.00, 20, 40, [255, 255], [255, 0]));
+ecs.addEntity(makeAsciiAnim('Touching this area\n hides you from enemies', 400, 500, 120, 150, 0.00, 20, 40, [255, 255], [255, 0]));
 
 let sys = [
     new TickSystem(),
     new CollisionSystem(),
     new ApplyModsSystem(),
     new CalculateStatsSystem(),
-    // new VisibilitySystem(),
+    new VisibilitySystem(),
 
-    new CombatSystem(),
+    new EncounterSystem(),
+    new UnitActingSystem(),
     
     new PositionUnitsSystem(),
     new DrawingSystem(),

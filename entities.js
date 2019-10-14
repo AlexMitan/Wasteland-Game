@@ -103,7 +103,7 @@ function compStat(base) {
 }
 
 
-function makeUnit(hp, attack, cooldown, sensors, visibility, squadGuid, size, fill, string) {
+function makeUnit(hp, physDmg, physResist, psiDmg, psiResist, cooldown, sensors, visibility, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,
         pos: {x:0, y:0},
@@ -113,7 +113,13 @@ function makeUnit(hp, attack, cooldown, sensors, visibility, squadGuid, size, fi
             hp: compStat(hp),
             maxCooldown: compStat(cooldown*2),
             cooldown: compStat(0),
-            attack: compStat(attack),
+
+            physDmg: compStat(physDmg), 
+            physResist: compStat(physResist),
+
+            psiDmg: compStat(psiDmg),
+            psiResist: compStat(psiResist),
+
             speed: compStat(5),
             visibility: compStat(visibility),
             sensors: compStat(sensors)
@@ -125,10 +131,6 @@ function makeUnit(hp, attack, cooldown, sensors, visibility, squadGuid, size, fi
         },
         squadGuid: squadGuid,
     }
-}
-
-function makeBasicUnit(squadGuid) {
-    return makeUnit(10, 2, 10, squadGuid, 10, [255], 'T');
 }
 
 function makeAsciiAnim(text, xa, ya, xb, yb, rate, sizeA, sizeB, fillA, fillB) {

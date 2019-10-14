@@ -36,6 +36,7 @@ class ECS {
         for (let component of props(entity)) {
             this.addToManager(component, guid);
         }
+        return entity;
     }
     getFirst(components) {
         return Array.from(this.filterGuids(components))[0];

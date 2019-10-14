@@ -18,18 +18,24 @@ playerSquad.TYPE_PLAYER = true;
 ecs.addEntity(playerSquad);
 
 
-let captain = makeUnit(100, 15, 100, 50, 20, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
+let captain = makeUnit(400, 5, 15, 50, 20, playerSquad.guid, 20, [200, 200, 255], '👩‍✈️');
 ecs.addEntity(captain);
-for (let i=0; i<6; i++) {
-    let unit = makeUnit(100, 4, 100, 15, 15, playerSquad.guid, 20, [200, 200, 255], '🕵️');
-    ecs.addEntity(unit);
-    // ecs.addEntity(makeBasicUnit(playerSquad.guid));
-}
+// for (let i=0; i<6; i++) {
+//     let unit = makeUnit(100, 4, 100, 15, 15, playerSquad.guid, 20, [200, 200, 255], '🕵️');
+//     ecs.addEntity(unit);
+//     // ecs.addEntity(makeBasicUnit(playerSquad.guid));
+// }
 
 
-let giantSquad = makeSquad(380, 360, 40, [255, 100, 0, 100]);
+let giantSquad = makeSquad(380, 360, 60, [255, 100, 0, 100]);
 ecs.addEntity(giantSquad);
 ecs.addEntity(makeUnit(400, 50, 300, 200, 100, giantSquad.guid, 40, [200], '🐙'));
+let squid2 = makeUnit(200, 3, 300, 200, 100, giantSquad.guid, 10, [200], '🐙');
+squid2.stats.hp.base -= 30;
+let squid3 = makeUnit(200, 3, 300, 200, 100, giantSquad.guid, 10, [200], '🐙');
+squid2.stats.hp.base -= 60;
+ecs.addEntity(squid2);
+ecs.addEntity(squid3);
 
 let mookSquad = makeSquad(550, 120, 100, [255, 0, 0, 100]);
 ecs.addEntity(mookSquad);

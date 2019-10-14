@@ -531,7 +531,9 @@ function CombatSystem() {
             text('id:' + squadA.guid + ' in ' + [...currentEncounter].join(','), 
                 squadA.pos.x, squadA.pos.y - squadA.r - 30);
                 
+            // get potential targets
             let targets = units.filter(u => currentEncounter.has(u.squadGuid));
+            // get ready units in squadA
             let readyUnits = units.filter(u => u.squadGuid === squadA.guid &&
                                                u.stats.cooldown.base === 0);
                                                
@@ -545,57 +547,64 @@ function CombatSystem() {
                     uy = unitA.pos.y;
                 // let target = pickFrom(targets);
                 // let target = targets.sort(unitA => -unitA.stats.attack)[0];
-                // let wTargets = targets -->[ [4, {}], [2, {}] ];
+                // let wList = targets -->[ [4, {}], [2, {}] ];
                 // build weight list
-                let wTargets = [];
-                let wSum = 0;
-                for (let target of targets) {
-                    let weight = 1 / (target.stats.hp.base / target.stats.maxHp.curr);
-                    if (target.squadGuid === unitA.squadGuid) {
-                        weight = 0;
+                function attackWeight(targets) {
+                    let wList = [];
+                    let wSum = 0;
+                    for (let target of targets) {
+                        let weight = 30 + 70 * (1 - target.stats.hp.base / target.stats.maxHp.curr);
+                        if (target.squadGuid === unitA.squadGuid) {
+                            weight = 0;
+                        } else 
+                            ecs.addEntity(makeAsciiProjectile(Math.round(weight), 
+                                target.pos.x, target.pos.y + 10,
+                                target.pos.x, target.pos.y + 15, 0.1, 16, [255]));
+                        // rect(target.pos.x, target.pos.y - 40, weight * 5, 4);
+                        wList.push([weight, target]);
+                        wSum += weight;
                     }
-                    ecs.addEntity(makeAsciiProjectile(Math.round(weight), 
-                        target.pos.x, target.pos.y + 10,
-                        target.pos.x, target.pos.y + 15, 0.1, 16, [255]));
-                    // rect(target.pos.x, target.pos.y - 40, weight * 5, 4);
-                    wTargets.push([weight, target]);
-                    wSum += weight;
+                    // sort by weight
+                    wList.sort((a, b) => a[0] < b[0]);
+                    return { 
+                        wList: wList,
+                        wSum: wSum,
+                        wMax: wList[0][0]
+                    }
                 }
-                let wRand = Math.random() * wSum;
-                let i=-1;
-                while (wRand > 0) {
-                    i += 1;
-                    wRand -= wTargets[i][0];
+                let { wList, wSum, wMax } = attackWeight(targets); 
+                ecs.addEntity(makeAsciiProjectile(wList.map(pair => Math.round(pair[0])).join(','), 
+                    unitA.pos.x, unitA.pos.y - 10,
+                    unitA.pos.x, unitA.pos.y - 15, 0.06, 16, [255]));
+                
+                function weightedPick(wList, wSum) {
+                    if (wSum === undefined) wSum = wList.reduce((acc, curr) => acc + curr[0]);
+                    let wRand = Math.random() * wSum;
+                    let i=-1;
+                    while (wRand > 0) {
+                        i += 1;
+                        wRand -= wList[i][0];
+                    }
+                    // HACK: nobody to target, move along
+                    if (i === -1) return null;
+    
+                    return wList[i][1];
                 }
-                // HACK: nobody to target, move along
-                if (i === -1) continue;
-
-                let target = wTargets[i][1];
-
+                let target = weightedPick(wList, wSum);
+                if (target === null) continue;
                 // ecs.addEntity(makeAsciiProjectile(target.guid, 
                 //     unit.pos.x, unit.pos.y,
                 //     unit.pos.x + 20, unit.pos.y, 0.05, 20, [255]));
 
-                let ability = {
-                    apply: function(unit, target) {
-                        let attack = {
-                            damage: 1,
-                            cooldown: 1,
-                        };
-                        // if (Math.random() > 0.3){
-                        //     attack = {
-                        //         damage: 2,
-                        //         cooldown: 1.5
-                        //     }
-                        // };
-                        let damage = unit.stats.attack.curr * attack.damage;
-                        let cooldown = unit.stats.maxCooldown.curr * attack.cooldown;
-                        unit.stats.cooldown.base = cooldown;
-                        target.stats.hp.base -= damage;
+                let basicAttack = {
+                    execute: function(unit, target) {
+                        // damage by attack stat and go on cooldown
+                        target.stats.hp.base -= unit.stats.attack.curr;
+                        unit.stats.cooldown.base = unit.stats.maxCooldown.curr;
                         ecs.addEntity(makeAsciiProjectile(round(damage), ux, uy, target.pos.x, target.pos.y, 0.05, damage + 10, [255, 255, 100, 200]));
                     }
                 }
-                ability.apply(unitA, target);
+                basicAttack.execute(unitA, target);
             }
         }
     }

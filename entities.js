@@ -98,9 +98,11 @@ function makeMulMod(stat, factor) {
 function makeAddMod(stat, add) {
     return makeMod(stat, 1, stat => stat + add);
 }
-function compStat(base, curr) {
-    return {base, curr:null}
+function compStat(base) {
+    return {base:base}
 }
+
+
 function makeUnit(hp, attack, cooldown, sensors, visibility, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,

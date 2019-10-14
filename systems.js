@@ -88,6 +88,60 @@ function LifetimeSystem() {
     }
 }
 
+function VisibilitySystem() {
+    this.process = function(ecs) {
+        let squads = ecs.filterEntities(['containsUnits']);
+        for (let squad of squads) {
+            let units = getUnits(ecs, squad.guid);
+
+            let visibility = units
+                .map(u => u.stats.visibility.curr)
+                .reduce((acc, curr) => acc + curr);
+            let sensors = units
+                .map(u => u.stats.sensors.curr)
+                .reduce((acc, curr) => acc + curr);
+
+            // setText(40, [255, 100]);
+            // text('vis:' + visibility, squad.pos.x, squad.pos.y + squad.r);
+            stroke(255, 100);
+            noFill();
+            circle(squad.pos.x, squad.pos.y, visibility * 2);
+
+            // setText(40, [0, 255, 255, 100]);
+            // text('sens:' + sensors, squad.pos.x, squad.pos.y + squad.r - 30);
+            stroke([0, 255, 255, 100]);
+            noFill();
+            circle(squad.pos.x, squad.pos.y, sensors * 2);
+
+
+            squad.squadStats.visibility = visibility;
+            squad.squadStats.sensors = sensors;
+        }
+        for (let squadA of squads) {
+            for (let squadB of squads) {
+                // S---|          : 4
+                //       |-----V  : 6
+                // S-----------V  : 11
+                if (squadA === squadB) continue;
+                let distAB = dist(squadA.pos.x, squadA.pos.y, squadB.pos.x, squadB.pos.y);
+                let sensA = squadA.squadStats.sensors;
+                let visB = squadB.squadStats.visibility
+                let detectDist = distAB - (sensA + visB);
+                setText(20, 255);
+                text('👁️' + detectDist, 
+                    (squadA.pos.x * 2 + squadB.pos.x) / 3, 
+                    (squadA.pos.y * 2 + squadB.pos.y) / 3);
+                // text('👁️', (squadA.pos.x + squadB.pos.x) / 2, (squadA.pos.y + squadB.pos.y) / 2);
+                if (detectDist < 0) {
+                    stroke(0, 255, 255, 100);
+                    line(squadA.pos.x, squadA.pos.y, squadB.pos.x, squadB.pos.y);
+                } else {
+                }
+            }
+        }
+    }
+}
+
 function CleanupSystem() {
     this.process = function(ecs) {
         // clean up empty squads
@@ -174,6 +228,8 @@ function ReticleSystem() {
         // reticle
         for (let reticle of ecs.filterEntities(['TYPE_RETICLE'])) {
             if (mouseIsPressed) {
+                setText(20, [255]);
+                text(reticle.pos.x + ', ' + reticle.pos.y, reticle.pos.x, reticle.pos.y);
                 reticle.pos.x = mouseX;
                 reticle.pos.y = mouseY;
             }
@@ -454,7 +510,7 @@ function CombatSystem() {
                             ))
                 // units go on initial cooldown
                 for (let unit of units) {
-                    unit.stats.cooldown.base = Math.random() * unit.stats.maxCooldown.base;
+                    unit.stats.cooldown.base = Math.random() * unit.stats.maxCooldown.curr;
                 }
             }
 
@@ -519,7 +575,7 @@ function CombatSystem() {
                         //     }
                         // };
                         let damage = unit.stats.attack.curr * attack.damage;
-                        let cooldown = unit.stats.maxCooldown.base * attack.cooldown;
+                        let cooldown = unit.stats.maxCooldown.curr * attack.cooldown;
                         unit.stats.cooldown.base = cooldown;
                         target.stats.hp.base -= damage;
                         ecs.addEntity(makeAsciiProjectile(round(damage), ux, uy, target.pos.x, target.pos.y, 0.05, damage + 10, [255, 255, 100, 200]));

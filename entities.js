@@ -28,6 +28,9 @@ function makeSquad(x, y, r, fill, stroke) {
     return {
         containsUnits: {
         },
+        squadStats: {
+
+        },
         lastCombat: new Set(),
         currentCombat: new Set(),
         speed: 5,
@@ -76,38 +79,22 @@ function makeAddMod(stat, add) {
     return makeMod(stat, 1, stat => stat + add);
 }
 function compStat(base, curr) {
-    return {base, curr}
+    return {base, curr:null}
 }
-function makeUnit(hp, attack, cooldown, squadGuid, size, fill, string) {
+function makeUnit(hp, attack, cooldown, sensors, visibility, squadGuid, size, fill, string) {
     return {
         TYPE_UNIT: true,
         pos: {x:0, y:0},
         mods: [],
         stats: {
-            maxHp : {
-                base: hp,
-                curr: hp,
-            },
-            hp: {
-                base: hp,
-                curr: hp,
-            },
-            maxCooldown: {
-                base: cooldown * 2,
-                base: cooldown,
-            },
-            cooldown: {
-                base: 0,
-                curr: 0,
-            },
-            attack: {
-                base: attack,
-                curr: 0
-            },
-            speed: {
-                base: 5,
-                curr: 0,
-            }
+            maxHp: compStat(hp),
+            hp: compStat(hp),
+            maxCooldown: compStat(cooldown*2),
+            cooldown: compStat(0),
+            attack: compStat(attack),
+            speed: compStat(5),
+            visibility: compStat(visibility),
+            sensors: compStat(sensors)
         },
         textRender: {
             size: size || 20,

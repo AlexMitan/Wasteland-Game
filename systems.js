@@ -154,15 +154,7 @@ function VisibilitySystem() {
 function CleanupSystem() {
     this.process = function(ecs) {
         // clean up empty squads
-        let squads = ecs.filterEntities(['containsUnits']);
-        for (let squad of squads) {
-            let units = getUnits(ecs, squad.guid);
-            if (units.length === 0) {
-                squad.dead = true;
-                ecs.updateEntity(squadA);
-                continue;
-            }
-        }
+
         
         let entities = ecs.filterEntities(['dead']);
         for (let entity of entities) {
@@ -455,10 +447,11 @@ function ApplyModsSystem() {
                     for (let unit of units) {
                         unit.mods.push(...mods);
                     }
-                    for (let unit of units) {
-                        setText(20, 255);
-                        text(unit.mods.length + '!', unit.pos.x - 40, unit.pos.y);
-                    }
+                    // display applied mods
+                    // for (let unit of units) {
+                        // setText(20, 255);
+                        // text(unit.mods.length + '!', unit.pos.x - 40, unit.pos.y);
+                    // }
                 }
             }
         }
@@ -488,9 +481,14 @@ function CombatSystem() {
         let squads = ecs.filterEntities(['containsUnits']);
         let units = ecs.filterEntities(['stats']);
 
-        // determine dead squads and conflict situations
+        // determine dead squads and encounters
         for (let squadA of squads) {
-            
+            let units = getUnits(ecs, squadA.guid);
+            if (units.length === 0) {
+                squadA.dead = true;
+                ecs.updateEntity(squadA);
+                continue;
+            }
             setText(30, [200, 200, 0]);
             // text("id:" + squadA.guid, squadA.pos.x - 20, squadA.pos.y + squadA.r + 20);
 
@@ -500,12 +498,11 @@ function CombatSystem() {
             let squadsInEncounter = new Set(squads
                 // .filter(s => s !== squadA)
                 .map(s => s.guid));
-
+                
+                
             squadA.currentEncounter = intersection(squadA.collisions, squadsInEncounter);
+            squadA.currentEncounter.add(squadA.guid);
 
-            setText(30, 255);
-            text([...squadA.currentEncounter].join(','), 
-                squadA.pos.x, squadA.pos.y - squadA.r - 30);
 
             // new contact situation, make units go on initial cooldown
             if (squadA.currentEncounter.size > 0 && 
@@ -529,29 +526,37 @@ function CombatSystem() {
         for (let squadA of squads) {
             let { currentEncounter } = squadA;
             if (currentEncounter.size === 1) continue;
+            setText(30, 255);
+            debugLog(currentEncounter);
+            text('id:' + squadA.guid + ' in ' + [...currentEncounter].join(','), 
+                squadA.pos.x, squadA.pos.y - squadA.r - 30);
+                
             let targets = units.filter(u => currentEncounter.has(u.squadGuid));
             let readyUnits = units.filter(u => u.squadGuid === squadA.guid &&
                                                u.stats.cooldown.base === 0);
                                                
-            // let targetIds = targets.map(t => t.guid);
             // display target ids
-            setText(50, [0, 255, 255]);
-            text([...currentEncounter].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
+            // setText(10, [0, 255, 100]);
+            // let targetIds = targets.map(t => t.guid);
             // text([...targetIds].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
-            for (let unit of readyUnits) {
-                let ux = unit.pos.x,
-                    uy = unit.pos.y;
+
+            for (let unitA of readyUnits) {
+                let ux = unitA.pos.x,
+                    uy = unitA.pos.y;
                 // let target = pickFrom(targets);
-                // let target = targets.sort(unit => -unit.stats.attack)[0];
+                // let target = targets.sort(unitA => -unitA.stats.attack)[0];
                 // let wTargets = targets -->[ [4, {}], [2, {}] ];
                 // build weight list
                 let wTargets = [];
                 let wSum = 0;
                 for (let target of targets) {
                     let weight = 1 / (target.stats.hp.base / target.stats.maxHp.curr);
-                    // ecs.addEntity(makeAsciiProjectile(weight, 
-                    //     target.pos.x, target.pos.y + 10,
-                    //     target.pos.x, target.pos.y + 10, 0.5, 16, [255]));
+                    if (target.squadGuid === unitA.squadGuid) {
+                        weight = 0;
+                    }
+                    ecs.addEntity(makeAsciiProjectile(Math.round(weight), 
+                        target.pos.x, target.pos.y + 10,
+                        target.pos.x, target.pos.y + 15, 0.1, 16, [255]));
                     // rect(target.pos.x, target.pos.y - 40, weight * 5, 4);
                     wTargets.push([weight, target]);
                     wSum += weight;
@@ -590,7 +595,7 @@ function CombatSystem() {
                         ecs.addEntity(makeAsciiProjectile(round(damage), ux, uy, target.pos.x, target.pos.y, 0.05, damage + 10, [255, 255, 100, 200]));
                     }
                 }
-                ability.apply(unit, target);
+                ability.apply(unitA, target);
             }
         }
     }

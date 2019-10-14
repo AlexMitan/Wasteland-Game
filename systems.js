@@ -101,17 +101,17 @@ function VisibilitySystem() {
                 .map(u => u.stats.sensors.curr)
                 .reduce((acc, curr) => acc + curr);
 
-            setText(40, [128]);
-            text('size:' + visibility, squad.pos.x + squad.r, squad.pos.y - squad.r);
-            stroke(128);
-            noFill();
-            circle(squad.pos.x, squad.pos.y, visibility * 2);
+            // setText(40, [128]);
+            // text('size:' + visibility, squad.pos.x + squad.r, squad.pos.y - squad.r);
+            // stroke(128);
+            // noFill();
+            // circle(squad.pos.x, squad.pos.y, visibility * 2);
 
-            setText(40, [0, 255, 255]);
-            text('vision:' + sensors, squad.pos.x + squad.r, squad.pos.y - squad.r - 30);
-            stroke([0, 255, 255]);
-            noFill();
-            circle(squad.pos.x, squad.pos.y, sensors * 2);
+            // setText(40, [0, 255, 255]);
+            // text('vision:' + sensors, squad.pos.x + squad.r, squad.pos.y - squad.r - 30);
+            // stroke([0, 255, 255]);
+            // noFill();
+            // circle(squad.pos.x, squad.pos.y, sensors * 2);
 
 
             squad.squadStats.visibility = visibility;
@@ -125,21 +125,26 @@ function VisibilitySystem() {
                 // S-----------V  : 11
                 if (squadA === squadB) continue;
                 let distAB = dist(squadA.pos.x, squadA.pos.y, squadB.pos.x, squadB.pos.y);
+                let distX = squadB.pos.x - squadA.pos.x;
+                let distY = squadB.pos.y - squadA.pos.y;
                 let sensA = squadA.squadStats.sensors;
                 let visB = squadB.squadStats.visibility
                 let detectDist = distAB - (sensA + visB);
-                setText(20, 255);
+                // setText(20, 255);
                 // text('👁️', (squadA.pos.x + squadB.pos.x) / 2, (squadA.pos.y + squadB.pos.y) / 2);
-                if (detectDist < 0) {
+                if (squadA.TYPE_PLAYER) continue;
+                if (detectDist < 0) { 
                     stroke(0, 255, 255, 100);
                     line(squadA.pos.x, squadA.pos.y, squadB.pos.x, squadB.pos.y);
                 } else if (detectDist < 200) {
+                    let angle = atan2(distY, distX);
+                    let eyeX = squadA.pos.x + cos(angle) * (visB + sensA - squadB.r);
+                    let eyeY = squadA.pos.y + sin(angle) * (visB + sensA - squadB.r);
+                    text('👁️' + Math.round(detectDist),
+                        eyeX, eyeY);
                     // text('👁️' + Math.round(detectDist), 
-                    //     (squadA.pos.x * 2 + squadB.pos.x) / 3, 
-                    //     (squadA.pos.y * 2 + squadB.pos.y) / 3);
-                    text('👁️' + Math.round(detectDist), 
-                        (squadA.pos.x * visB + squadB.pos.x * sensA) / (visB + sensA), 
-                        (squadA.pos.y * visB + squadB.pos.y * sensA) / (visB + sensA));
+                    //     (squadA.pos.x * visB + squadB.pos.x * sensA) / (visB + sensA), 
+                    //     (squadA.pos.y * visB + squadB.pos.y * sensA) / (visB + sensA));
                 }
             }
         }
@@ -491,22 +496,22 @@ function CombatSystem() {
 
             // collisions to determine current combat situation
             // TODO: use collisions from system
-            squadA.lastCombat = squadA.currentCombat;
-            let enemySquads = new Set(squads
-                .filter(s => s !== squadA)
+            squadA.lastEncounter = squadA.currentEncounter;
+            let squadsInEncounter = new Set(squads
+                // .filter(s => s !== squadA)
                 .map(s => s.guid));
 
-            squadA.currentCombat = intersection(squadA.collisions, enemySquads);
+            squadA.currentEncounter = intersection(squadA.collisions, squadsInEncounter);
 
             setText(30, 255);
-            text([...squadA.currentCombat].join(','), 
+            text([...squadA.currentEncounter].join(','), 
                 squadA.pos.x, squadA.pos.y - squadA.r - 30);
 
             // new contact situation, make units go on initial cooldown
-            if (squadA.currentCombat.size > 0 && 
-                !equalSets(squadA.lastCombat, squadA.currentCombat) &&
-                isSuperset(squadA.currentCombat, squadA.lastCombat)) {
-                ecs.addEntity(makeAsciiProjectile([...squadA.currentCombat].join(','),
+            if (squadA.currentEncounter.size > 0 && 
+                !equalSets(squadA.lastEncounter, squadA.currentEncounter) &&
+                isSuperset(squadA.currentEncounter, squadA.lastEncounter)) {
+                ecs.addEntity(makeAsciiProjectile([...squadA.currentEncounter].join(','),
                                 squadA.pos.x, squadA.pos.y,
                                 squadA.pos.x, squadA.pos.y - 30,
                                 0.05, 50,
@@ -522,23 +527,23 @@ function CombatSystem() {
 
         // make each unit off cd act
         for (let squadA of squads) {
-            let { currentCombat } = squadA;
-            if (currentCombat.size === 0) continue;
-            let targets = units.filter(u => currentCombat.has(u.squadGuid));
+            let { currentEncounter } = squadA;
+            if (currentEncounter.size === 1) continue;
+            let targets = units.filter(u => currentEncounter.has(u.squadGuid));
             let readyUnits = units.filter(u => u.squadGuid === squadA.guid &&
                                                u.stats.cooldown.base === 0);
                                                
             // let targetIds = targets.map(t => t.guid);
             // display target ids
-            // setText(50, [0, 255, 255]);
+            setText(50, [0, 255, 255]);
+            text([...currentEncounter].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
             // text([...targetIds].join(','), squadA.pos.x - squadA.r, squadA.pos.y - squadA.r);
-            
             for (let unit of readyUnits) {
                 let ux = unit.pos.x,
                     uy = unit.pos.y;
                 // let target = pickFrom(targets);
                 // let target = targets.sort(unit => -unit.stats.attack)[0];
-                // let wTargets = targets -->[ [{},4], [{}, 2] ];
+                // let wTargets = targets -->[ [4, {}], [2, {}] ];
                 // build weight list
                 let wTargets = [];
                 let wSum = 0;

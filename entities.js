@@ -32,7 +32,7 @@ function makeSquad(x, y, r, fill, stroke) {
 
         },
         lastCombat: new Set(),
-        currentCombat: new Set(),
+        currentEncounter: new Set(),
         speed: 5,
         vel: {x: 0, y: 0},
         pos: {x, y},
@@ -42,6 +42,26 @@ function makeSquad(x, y, r, fill, stroke) {
         stroke: stroke || [255, 0],
     }
 } 
+
+function makeAbility(execute, weightList, ascii) {
+    return {
+        execute, 
+        weightList,
+        ascii: ascii || '?'
+    }
+}
+
+function makeAttack() {
+    return {
+        execute: function(user, targets) {
+
+        },
+        weightList: function(units) {
+
+        }
+    }
+}
+
 function makeModField(x, y, r, mods, fill, stroke) {
     return {
         pos: {x, y},
